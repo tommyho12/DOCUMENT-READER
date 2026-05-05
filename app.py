@@ -1,413 +1,429 @@
 import streamlit as st
 import anthropic
 import base64
+import cv2
+import numpy as np
 from PIL import Image, ImageEnhance, ImageFilter
 import io
-import numpy as np
-import json
 import datetime
 import openpyxl
-from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.styles import Font, PatternFill, Alignment
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
-from reportlab.lib.enums import TA_LEFT, TA_CENTER
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable
 
-# ── Page Config ───────────────────────────────────────────
-st.set_page_config(
-    page_title="DocuScan Pro",
-    page_icon="📋",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+st.set_page_config(page_title="DocuScan Pro", page_icon="📋", layout="wide", initial_sidebar_state="expanded")
 
-# ── Styles ────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+html, body, [class*="css"] { font-family: 'Inter', sans-serif; background-color: #0d1117 !important; color: #e6edf3 !important; }
+section[data-testid="stSidebar"] { background: #161b22 !important; border-right: 1px solid #21262d !important; }
+section[data-testid="stSidebar"] * { color: #e6edf3 !important; }
+.main .block-container { background: #0d1117 !important; padding-top: 1rem !important; }
+input, textarea, select { background: #161b22 !important; border: 1px solid #30363d !important; color: #e6edf3 !important; border-radius: 8px !important; }
+input:focus, textarea:focus { border-color: #2ea043 !important; box-shadow: 0 0 0 3px rgba(46,160,67,0.15) !important; }
+.stButton > button { background: #238636 !important; color: white !important; border: none !important; border-radius: 8px !important; font-weight: 600 !important; padding: 10px 20px !important; transition: all 0.2s !important; }
+.stButton > button:hover { background: #2ea043 !important; transform: translateY(-1px); box-shadow: 0 4px 15px rgba(46,160,67,0.3) !important; }
+.stButton > button[kind="secondary"] { background: #21262d !important; border: 1px solid #30363d !important; }
+.stDownloadButton > button { background: #1f6feb !important; color: white !important; border: none !important; border-radius: 8px !important; font-weight: 500 !important; }
+.stTabs [data-baseweb="tab-list"] { background: #161b22 !important; border-radius: 10px !important; padding: 4px !important; gap: 4px !important; border: 1px solid #21262d !important; }
+.stTabs [data-baseweb="tab"] { background: transparent !important; color: #8b949e !important; border-radius: 8px !important; font-weight: 500 !important; }
+.stTabs [aria-selected="true"] { background: #238636 !important; color: white !important; }
+.streamlit-expanderHeader { background: #161b22 !important; border: 1px solid #21262d !important; border-radius: 8px !important; color: #e6edf3 !important; }
+.streamlit-expanderContent { background: #0d1117 !important; border: 1px solid #21262d !important; border-top: none !important; }
+.stSelectbox > div > div { background: #161b22 !important; border: 1px solid #30363d !important; color: #e6edf3 !important; border-radius: 8px !important; }
+[data-testid="metric-container"] { background: #161b22 !important; border: 1px solid #21262d !important; border-radius: 10px !important; padding: 12px !important; }
+[data-testid="metric-container"] label { color: #8b949e !important; }
+[data-testid="metric-container"] [data-testid="stMetricValue"] { color: #2ea043 !important; font-weight: 700 !important; }
+.stSuccess { background: #0d2818 !important; border: 1px solid #238636 !important; color: #2ea043 !important; border-radius: 8px !important; }
+.stError { background: #2d1117 !important; border: 1px solid #f85149 !important; color: #f85149 !important; border-radius: 8px !important; }
+.stWarning { background: #271d0b !important; border: 1px solid #d29922 !important; color: #d29922 !important; border-radius: 8px !important; }
+.stInfo { background: #0d1b2e !important; border: 1px solid #1f6feb !important; color: #388bfd !important; border-radius: 8px !important; }
+[data-testid="stFileUploader"] { background: #161b22 !important; border: 2px dashed #30363d !important; border-radius: 12px !important; }
 
-html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+.ds-header { background: linear-gradient(135deg, #0d2818 0%, #1a3a2a 50%, #0d1117 100%); border: 1px solid #238636; padding: 28px 32px; border-radius: 16px; margin-bottom: 28px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 0 40px rgba(46,160,67,0.15); }
+.ds-logo { font-size: 28px; font-weight: 800; letter-spacing: -1px; color: #e6edf3; }
+.ds-logo span { color: #2ea043; }
+.ds-logo sub { font-size: 13px; font-weight: 400; color: #8b949e; letter-spacing: 0; margin-left: 4px; }
+.ds-tagline { font-size: 13px; color: #8b949e; margin-top: 4px; }
+.ds-badge { background: linear-gradient(135deg, #238636, #2ea043); color: white; font-size: 11px; font-weight: 600; padding: 5px 14px; border-radius: 20px; letter-spacing: 0.5px; box-shadow: 0 2px 10px rgba(46,160,67,0.4); }
 
-.ds-header {
-    background: linear-gradient(135deg, #0f2942 0%, #185FA5 100%);
-    padding: 24px 32px; border-radius: 12px;
-    margin-bottom: 24px; color: white;
-    display: flex; align-items: center; justify-content: space-between;
-}
-.ds-logo { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
-.ds-logo span { color: #60B4FF; }
-.ds-tagline { font-size: 13px; opacity: 0.75; margin-top: 3px; }
-.ds-version { font-size: 11px; background: rgba(255,255,255,0.15); padding: 4px 10px; border-radius: 20px; }
+.quality-fail { background: #1a0a00; border: 2px solid #d29922; border-radius: 12px; padding: 20px 24px; margin: 12px 0; }
+.quality-fail h3 { color: #d29922; font-size: 16px; margin-bottom: 8px; }
+.quality-fail p { color: #c9a227; font-size: 13px; line-height: 1.7; margin: 0; }
+.quality-ok { background: #0d2818; border: 1px solid #238636; border-radius: 10px; padding: 10px 16px; margin: 8px 0; font-size: 13px; color: #7ee787; }
 
-.stat-card {
-    background: white; border: 1px solid #e8e8e8;
-    border-radius: 10px; padding: 16px 20px; text-align: center;
-}
-.stat-num { font-size: 28px; font-weight: 700; color: #185FA5; }
-.stat-lbl { font-size: 12px; color: #999; margin-top: 2px; }
+.how-to-box { background: #0d1b2e; border: 1px solid #1f6feb; border-radius: 12px; padding: 20px 24px; margin: 12px 0; }
+.how-to-box h4 { color: #388bfd; font-size: 14px; margin-bottom: 10px; }
+.how-to-box p { color: #8b949e; font-size: 13px; line-height: 1.8; margin: 0; }
+.how-to-box b { color: #e6edf3; }
 
-.doc-card {
-    background: white; border: 1px solid #e8e8e8;
-    border-radius: 10px; padding: 16px;
-    margin-bottom: 10px; transition: all 0.2s;
-}
-.doc-card:hover { border-color: #185FA5; box-shadow: 0 2px 8px rgba(24,95,165,0.1); }
-.doc-card-name { font-size: 14px; font-weight: 600; color: #1a1a1a; }
-.doc-card-meta { font-size: 12px; color: #999; margin-top: 3px; }
-.doc-card-type { font-size: 11px; background: #E6F1FB; color: #185FA5; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
-
-.result-box {
-    background: #fafafa; border: 1px solid #e8e8e8;
-    border-left: 4px solid #185FA5;
-    padding: 18px; border-radius: 8px;
-    font-size: 13px; line-height: 1.9;
-    white-space: pre-wrap; font-family: 'Courier New', monospace;
-    max-height: 400px; overflow-y: auto;
-}
-.badge-ok { background:#EAF3DE; color:#3B6D11; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; }
-.badge-proc { background:#E6F1FB; color:#185FA5; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; }
-
-.upload-hint {
-    background: #FFF8E6; border: 1px solid #F5C842;
-    border-radius: 8px; padding: 12px 16px;
-    font-size: 13px; color: #7A5C00; margin-bottom: 16px;
-}
-.section-title { font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 12px; }
-.empty-state { text-align: center; padding: 40px; color: #bbb; font-size: 14px; }
+.result-box { background: #161b22; border: 1px solid #21262d; border-left: 3px solid #2ea043; padding: 20px; border-radius: 10px; font-size: 13px; line-height: 1.9; white-space: pre-wrap; font-family: 'Courier New', monospace; color: #e6edf3; max-height: 420px; overflow-y: auto; }
+.badge-high { background:#0d2818; color:#2ea043; border:1px solid #238636; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; }
+.badge-med  { background:#271d0b; color:#d29922; border:1px solid #d29922; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; }
+.badge-low  { background:#2d1117; color:#f85149; border:1px solid #f85149; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; }
+.section-title { font-size: 15px; font-weight: 600; color: #e6edf3; margin-bottom: 12px; }
+.empty-state { text-align:center; padding:50px; color:#30363d; font-size:14px; }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Session State ─────────────────────────────────────────
 if "records" not in st.session_state:
     st.session_state.records = []
-if "active_tab" not in st.session_state:
-    st.session_state.active_tab = "scan"
 
-# ── Image Enhancement Engine ──────────────────────────────
-def enhance_image(img: Image.Image, level: str) -> Image.Image:
-    img = img.convert("RGB")
+# ── Quality Check ─────────────────────────────────────────
+MIN_SHORT_SIDE = 600
+MIN_PIXELS = 500_000
+
+def check_image_quality(img: Image.Image):
     w, h = img.size
+    short_side = min(w, h)
+    total_pixels = w * h
+    issues = []
+    if short_side < MIN_SHORT_SIDE:
+        issues.append(f"Image is too small ({w}×{h}px). Minimum required: {MIN_SHORT_SIDE}px on the shortest side.")
+    if total_pixels < MIN_PIXELS:
+        issues.append(f"Image has too few pixels ({total_pixels:,}). Minimum required: {MIN_PIXELS:,}px.")
+    return issues
 
-    # Step 1 — Upscale tiny images aggressively
-    min_dim = 1200
-    if max(w, h) < min_dim:
-        scale = min_dim / max(w, h)
-        new_w, new_h = int(w * scale), int(h * scale)
-        # Extra scale for very tiny images
-        if max(w, h) < 300:
-            scale = scale * 2
-            new_w, new_h = int(w * scale), int(h * scale)
-        img = img.resize((new_w, new_h), Image.LANCZOS)
-
-    # Step 2 — Auto white balance / levels
-    arr = np.array(img, dtype=np.float32)
-    for c in range(3):
-        ch = arr[:, :, c]
-        p1 = np.percentile(ch, 1)
-        p99 = np.percentile(ch, 99)
-        if p99 > p1:
-            arr[:, :, c] = np.clip((ch - p1) / (p99 - p1) * 255, 0, 255)
-    img = Image.fromarray(arr.astype(np.uint8))
-
-    # Step 3 — Enhancement based on level
-    settings = {
-        "Standard":                  (1.8, 1.2, 3.0, 2),
-        "Aggressive (very blurry)":  (2.8, 1.5, 5.0, 3),
-        "Max (almost unreadable)":   (4.0, 1.8, 8.0, 4),
+HOW_TO_SEND = {
+    "photo_in_camera": {
+        "title": "📱 How to send a photo from your camera roll",
+        "steps": """<b>iPhone:</b> Open the photo → tap Share (box with arrow) → tap the app you're using (Messages/Email/WhatsApp) → send the <b>full-size original</b> — do NOT screenshot it first.<br><br>
+<b>Android:</b> Open the photo → tap Share → choose your app → send it. Make sure to send as <b>Original Quality</b>, not compressed."""
+    },
+    "pdf_or_file": {
+        "title": "📄 How to send a PDF or file",
+        "steps": """Open your email, downloads, or files app → find the document → use the Share or Attach option → send the <b>actual file</b>, not a photo of the screen.<br><br>
+<b>Do NOT</b> take a screenshot of the PDF on your screen — this loses most of the quality. Always send the original file."""
+    },
+    "physical_doc": {
+        "title": "📷 How to photograph a physical document",
+        "steps": """Place the document on a flat surface in good lighting → open your phone camera → <b>tap on the document</b> to focus → hold steady and take the photo.<br><br>
+Make sure the entire document fits in the frame. Send the photo directly from your camera app — <b>do NOT screenshot it</b>."""
     }
-    contrast, brightness, sharpness, passes = settings.get(level, settings["Aggressive (very blurry)"])
+}
 
-    img = ImageEnhance.Contrast(img).enhance(contrast)
-    img = ImageEnhance.Brightness(img).enhance(brightness)
-
-    for _ in range(passes):
-        img = ImageEnhance.Sharpness(img).enhance(sharpness)
-        img = img.filter(ImageFilter.SHARPEN)
-        img = img.filter(ImageFilter.EDGE_ENHANCE_MORE)
-
-    img = img.filter(ImageFilter.MedianFilter(size=3))
-    img = ImageEnhance.Sharpness(img).enhance(sharpness)
-
-    return img
-
-def img_to_b64(img: Image.Image) -> str:
-    buf = io.BytesIO()
-    img.save(buf, format="PNG")
+# ── Image Enhancement ─────────────────────────────────────
+def pil_to_cv(img): return cv2.cvtColor(np.array(img.convert("RGB")), cv2.COLOR_RGB2BGR)
+def cv_to_pil(arr): return Image.fromarray(cv2.cvtColor(arr, cv2.COLOR_BGR2RGB))
+def img_to_b64(img):
+    buf = io.BytesIO(); img.save(buf, format="PNG")
     return base64.b64encode(buf.getvalue()).decode()
+def img_to_bytes(img):
+    buf = io.BytesIO(); img.save(buf, format="PNG"); return buf.getvalue()
 
-def img_to_bytes(img: Image.Image) -> bytes:
-    buf = io.BytesIO()
-    img.save(buf, format="PNG")
-    return buf.getvalue()
+def generate_enhanced_versions(pil_img: Image.Image):
+    base = pil_to_cv(pil_img)
+    h, w = base.shape[:2]
+    target = 1800
+    if max(h, w) < target:
+        scale = target / max(h, w)
+        base = cv2.resize(base, (int(w*scale), int(h*scale)), interpolation=cv2.INTER_LANCZOS4)
 
-# ── AI Prompts ────────────────────────────────────────────
-PROMPT = """You are DocuScan Pro — an elite document reading AI built for insurance and tax offices.
+    versions = []
 
-This image may be a phone screenshot, blurry photo, low-resolution scan, or dark image. It has already been enhanced. Your job is to extract EVERY piece of readable information — be aggressive and thorough.
+    # V1 — CLAHE + unsharp mask (best for dark/low contrast)
+    v1 = base.copy()
+    lab = cv2.cvtColor(v1, cv2.COLOR_BGR2LAB)
+    l, a, b = cv2.split(lab)
+    clahe = cv2.createCLAHE(clipLimit=4.0, tileGridSize=(8,8))
+    l = clahe.apply(l)
+    v1 = cv2.cvtColor(cv2.merge([l,a,b]), cv2.COLOR_LAB2BGR)
+    blur = cv2.GaussianBlur(v1,(0,0),3)
+    v1 = cv2.addWeighted(v1, 2.0, blur, -1.0, 0)
+    v1 = cv2.fastNlMeansDenoisingColored(v1, None, 5, 5, 7, 21)
+    versions.append(("CLAHE Enhanced", cv_to_pil(v1)))
 
-IMPORTANT RULES:
-1. Never say you cannot read it. Always extract whatever you can see.
-2. If text is partially visible, make your best inference and mark it [?]
-3. Read in ANY language — do not translate, extract as-is
-4. Look for patterns: numbers that look like IDs, dates, dollar amounts, names
-5. If you see a table or form, preserve the structure
+    # V2 — Aggressive contrast + PIL sharpening (best for blurry text)
+    v2 = base.copy()
+    lab = cv2.cvtColor(v2, cv2.COLOR_BGR2LAB)
+    l, a, b = cv2.split(lab)
+    clahe2 = cv2.createCLAHE(clipLimit=6.0, tileGridSize=(4,4))
+    l = clahe2.apply(l)
+    v2 = cv2.cvtColor(cv2.merge([l,a,b]), cv2.COLOR_LAB2BGR)
+    for _ in range(3):
+        blur2 = cv2.GaussianBlur(v2,(0,0),2)
+        v2 = cv2.addWeighted(v2, 3.0, blur2, -2.0, 0)
+    v2_pil = cv_to_pil(v2)
+    v2_pil = ImageEnhance.Contrast(v2_pil).enhance(2.5)
+    v2_pil = ImageEnhance.Sharpness(v2_pil).enhance(6.0)
+    versions.append(("High Contrast", v2_pil))
 
-FORMAT YOUR RESPONSE EXACTLY LIKE THIS:
+    # V3 — Adaptive threshold B&W (best for form text/printed docs)
+    v3 = base.copy()
+    lab = cv2.cvtColor(v3, cv2.COLOR_BGR2LAB)
+    l, a, b = cv2.split(lab)
+    clahe3 = cv2.createCLAHE(clipLimit=4.0, tileGridSize=(8,8))
+    l = clahe3.apply(l)
+    v3 = cv2.cvtColor(cv2.merge([l,a,b]), cv2.COLOR_LAB2BGR)
+    gray = cv2.cvtColor(v3, cv2.COLOR_BGR2GRAY)
+    thresh = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,21,8)
+    thresh = cv2.fastNlMeansDenoising(thresh, None, 5, 7, 21)
+    versions.append(("B&W Text Mode", Image.fromarray(thresh).convert("RGB")))
 
-DOCUMENT TYPE: [identify what this document is]
+    return versions
+
+def build_prompt(doc_type, client_name, notes):
+    hints = {
+        "Insurance Card": "Look for: Member Name, Member ID, Group Number, Plan Name, Insurance Company, Effective Date, Copay amounts, Phone numbers, Payer ID.",
+        "Driver's License / ID": "Look for: Full Name, DOB, Address, License/ID Number, Expiration Date, State.",
+        "Tax Form (W-2 / 1099 / 1040)": "Look for: Form type, Tax Year, Taxpayer Name, SSN last 4, Employer/Payer info, EIN, all box numbers and dollar amounts.",
+        "Medical Record": "Look for: Patient Name, DOB, Date of Service, Provider, Diagnoses, Medications, Instructions.",
+        "Pay Stub": "Look for: Employee Name, Pay Period, Gross Pay, Net Pay, Deductions, YTD amounts, Employer name.",
+        "Bank Statement": "Look for: Account holder, Account number last 4, Bank name, Statement period, Opening/closing balance.",
+        "Letter / Notice": "Look for: Sender, Date, Reference numbers, Recipient, Subject, Key dates, Action items, Contact info.",
+        "Social Security Card": "Look for: Full name, Social Security Number.",
+        "Medicare / Medicaid Card": "Look for: Name, Medicare/Medicaid number, effective dates, coverage type.",
+    }
+    hint = hints.get(doc_type, "Extract all visible text and data fields.")
+    return f"""You are DocuScan Pro — an elite document reading AI for insurance and tax offices.
+
+You are receiving 3 enhanced versions of the same document. Each version uses a different enhancement technique. Cross-reference ALL versions to extract the most complete information possible.
+
+RULES:
+1. Never say you cannot read it — always extract something
+2. Mark uncertain text with [?] but always give your best attempt
+3. Cross-reference all 3 image versions — text visible in one may not be in another
+4. Read ANY language without translating
+5. Look for patterns: numbers near $ = amounts, slashes = dates, letter+numbers = IDs
+
+CLIENT: {client_name}
+DOCUMENT TYPE: {doc_type}
+SPECIFIC FIELDS TO FIND: {hint}
+NOTES: {notes if notes else 'None'}
+
+FORMAT:
+DOCUMENT TYPE: [identified type]
 
 CLIENT INFORMATION:
-[All names, dates of birth, addresses, phone numbers found]
+[Names, DOB, addresses, phones]
 
 KEY FIELDS:
-[All important fields with labels — IDs, policy numbers, amounts, dates, etc.]
+[All labeled fields — IDs, policy numbers, amounts, dates]
 
 FULL EXTRACTED TEXT:
-[Every line of text visible, top to bottom, left to right]
+[Every visible line, top to bottom]
 
-CONFIDENCE: [High / Medium / Low] — [brief reason]"""
+CONFIDENCE: [High / Medium / Low] — [one line reason]"""
 
-# ── Export Functions ──────────────────────────────────────
 def export_excel(records):
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "DocuScan Records"
-
-    # Header styling
-    header_fill = PatternFill("solid", fgColor="185FA5")
-    header_font = Font(color="FFFFFF", bold=True, size=11)
-    headers = ["#", "Client Name", "Document Type", "Date Processed", "Extracted Text", "Confidence"]
-
+    hfill = PatternFill("solid", fgColor="238636")
+    hfont = Font(color="FFFFFF", bold=True, size=11)
+    headers = ["#","Client Name","Document Type","Date Processed","Confidence","Extracted Text"]
     for col, h in enumerate(headers, 1):
         cell = ws.cell(row=1, column=col, value=h)
-        cell.fill = header_fill
-        cell.font = header_font
+        cell.fill = hfill; cell.font = hfont
         cell.alignment = Alignment(horizontal="center", vertical="center")
-
-    ws.row_dimensions[1].height = 30
-    col_widths = [5, 25, 20, 20, 80, 15]
-    for i, w in enumerate(col_widths, 1):
+    ws.row_dimensions[1].height = 28
+    for i, w in enumerate([5,25,22,22,12,90], 1):
         ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width = w
-
-    alt_fill = PatternFill("solid", fgColor="EBF3FB")
+    alt = PatternFill("solid", fgColor="0D2818")
     for i, rec in enumerate(records, 1):
-        row = i + 1
-        fill = alt_fill if i % 2 == 0 else PatternFill()
-        values = [i, rec["client"], rec["doc_type"], rec["timestamp"],
-                  rec["extracted_text"][:500] + ("..." if len(rec["extracted_text"]) > 500 else ""),
-                  rec.get("confidence", "—")]
-        for col, val in enumerate(values, 1):
+        row = i+1
+        vals = [i, rec["client"], rec["doc_type"], rec["timestamp"],
+                rec.get("confidence","—"),
+                rec["extracted_text"][:800]+("…" if len(rec["extracted_text"])>800 else "")]
+        for col, val in enumerate(vals, 1):
             cell = ws.cell(row=row, column=col, value=val)
-            cell.fill = fill
+            if i%2==0: cell.fill = alt
             cell.alignment = Alignment(wrap_text=True, vertical="top")
-
-    buf = io.BytesIO()
-    wb.save(buf)
-    return buf.getvalue()
+    buf = io.BytesIO(); wb.save(buf); return buf.getvalue()
 
 def export_pdf(records):
     buf = io.BytesIO()
     doc = SimpleDocTemplate(buf, pagesize=letter,
-                            leftMargin=0.75*inch, rightMargin=0.75*inch,
-                            topMargin=0.75*inch, bottomMargin=0.75*inch)
-    styles = getSampleStyleSheet()
-    story = []
-
-    # Title
-    title_style = ParagraphStyle("title", fontSize=20, fontName="Helvetica-Bold",
-                                  textColor=colors.HexColor("#185FA5"), spaceAfter=4)
-    sub_style = ParagraphStyle("sub", fontSize=10, textColor=colors.HexColor("#999999"), spaceAfter=20)
-    story.append(Paragraph("DocuScan Pro — Extracted Records", title_style))
-    story.append(Paragraph(f"Generated: {datetime.datetime.now().strftime('%B %d, %Y %I:%M %p')} | Total Records: {len(records)}", sub_style))
-    story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor("#185FA5")))
-    story.append(Spacer(1, 16))
-
-    body_style = ParagraphStyle("body", fontSize=9, fontName="Courier", leading=14,
-                                 textColor=colors.HexColor("#333333"))
-    label_style = ParagraphStyle("label", fontSize=10, fontName="Helvetica-Bold",
-                                  textColor=colors.HexColor("#185FA5"), spaceBefore=16, spaceAfter=4)
-    meta_style = ParagraphStyle("meta", fontSize=9, textColor=colors.HexColor("#888888"), spaceAfter=8)
-
+        leftMargin=0.75*inch, rightMargin=0.75*inch,
+        topMargin=0.75*inch, bottomMargin=0.75*inch)
+    title_s = ParagraphStyle("t", fontSize=22, fontName="Helvetica-Bold", textColor=colors.HexColor("#238636"), spaceAfter=4)
+    sub_s   = ParagraphStyle("s", fontSize=10, textColor=colors.HexColor("#8b949e"), spaceAfter=20)
+    lbl_s   = ParagraphStyle("l", fontSize=11, fontName="Helvetica-Bold", textColor=colors.HexColor("#2ea043"), spaceBefore=18, spaceAfter=4)
+    meta_s  = ParagraphStyle("m", fontSize=9, textColor=colors.HexColor("#8b949e"), spaceAfter=6)
+    body_s  = ParagraphStyle("b", fontSize=9, fontName="Courier", leading=14, textColor=colors.HexColor("#333333"))
+    story = [
+        Paragraph("DocuScan Pro — Extracted Records", title_s),
+        Paragraph(f"Generated: {datetime.datetime.now().strftime('%B %d, %Y %I:%M %p')}  |  Records: {len(records)}", sub_s),
+        HRFlowable(width="100%", thickness=1.5, color=colors.HexColor("#238636")),
+        Spacer(1, 14),
+    ]
     for i, rec in enumerate(records, 1):
-        story.append(Paragraph(f"Record #{i} — {rec['client']}", label_style))
-        story.append(Paragraph(
-            f"Document Type: {rec['doc_type']}  |  Processed: {rec['timestamp']}  |  Confidence: {rec.get('confidence','—')}",
-            meta_style))
+        story.append(Paragraph(f"#{i}  {rec['client']}", lbl_s))
+        story.append(Paragraph(f"Type: {rec['doc_type']}  |  {rec['timestamp']}  |  Confidence: {rec.get('confidence','—')}", meta_s))
         story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#dddddd")))
-        story.append(Spacer(1, 6))
-        safe_text = rec["extracted_text"].replace("<", "&lt;").replace(">", "&gt;")
-        story.append(Paragraph(safe_text.replace("\n", "<br/>"), body_style))
-        story.append(Spacer(1, 20))
-
-    doc.build(story)
-    return buf.getvalue()
+        story.append(Spacer(1,6))
+        safe = rec["extracted_text"].replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
+        story.append(Paragraph(safe.replace("\n","<br/>"), body_s))
+        story.append(Spacer(1,18))
+    doc.build(story); return buf.getvalue()
 
 # ── Sidebar ───────────────────────────────────────────────
 with st.sidebar:
     st.markdown("### ⚙️ Configuration")
-    api_key = st.text_input("Anthropic API Key", type="password",
-                             placeholder="sk-ant-api03-...",
-                             help="Get free at console.anthropic.com → API Keys")
-    if api_key and not api_key.startswith("sk-ant-"):
-        st.error("Key should start with sk-ant-")
-    elif api_key:
-        st.success("✓ Key ready")
-    st.caption("🔒 Never stored. Only used for this session.")
+    api_key = st.text_input("Anthropic API Key", type="password", placeholder="sk-ant-api03-...")
+    if api_key:
+        if not api_key.startswith("sk-ant-"):
+            st.error("Must start with sk-ant-")
+        else:
+            st.success("✓ Key ready")
+    st.caption("🔒 Never stored. Session only.")
     st.markdown("[Get a free key →](https://console.anthropic.com)")
-
-    st.divider()
-    st.markdown("### 🖼️ Enhancement")
-    enhance_level = st.radio("Level", [
-        "Standard",
-        "Aggressive (very blurry)",
-        "Max (almost unreadable)"
-    ], index=1)
-    st.caption("Use Max for phone screenshots or very dark images.")
-
     st.divider()
     st.markdown("### 📊 Session Stats")
-    total = len(st.session_state.records)
-    types = {}
-    for r in st.session_state.records:
-        types[r["doc_type"]] = types.get(r["doc_type"], 0) + 1
-    st.metric("Documents Processed", total)
-    if types:
-        for t, c in sorted(types.items(), key=lambda x: -x[1]):
+    st.metric("Documents Processed", len(st.session_state.records))
+    if st.session_state.records:
+        types = {}
+        for r in st.session_state.records:
+            types[r["doc_type"]] = types.get(r["doc_type"],0)+1
+        for t,c in sorted(types.items(), key=lambda x: -x[1]):
             st.caption(f"• {t}: {c}")
-
     st.divider()
-    st.markdown("**DocuScan Pro** v1.0")
-    st.caption("Built for Vietrust Insurance")
+    st.markdown("**DocuScan Pro** v2.1")
+    st.caption("Built for Vietrust Insurance & Tax")
 
 # ── Header ────────────────────────────────────────────────
 st.markdown("""
 <div class="ds-header">
   <div>
-    <div class="ds-logo">Docu<span>Scan</span> Pro</div>
-    <div class="ds-tagline">AI-powered document reading for insurance & tax offices</div>
+    <div class="ds-logo">Docu<span>Scan</span> Pro<sub>by Vietrust</sub></div>
+    <div class="ds-tagline">AI document reading · Any language · Clear image required for best results</div>
   </div>
-  <div class="ds-version">v1.0 Beta</div>
+  <div class="ds-badge">⚡ v2.1 POWERED BY CLAUDE AI</div>
 </div>
 """, unsafe_allow_html=True)
 
-# ── Tabs ──────────────────────────────────────────────────
-tab_scan, tab_records, tab_export = st.tabs(["📷 Scan Document", "📁 Records", "📤 Export"])
+tab_scan, tab_records, tab_export, tab_help = st.tabs(["📷  Scan Document", "📁  Records", "📤  Export", "❓  How to Send Documents"])
 
-# ════════════════════════════════════════════════════════
+# ════════════════════════════════════════════
 # TAB 1 — SCAN
-# ════════════════════════════════════════════════════════
+# ════════════════════════════════════════════
 with tab_scan:
-    st.markdown('<div class="upload-hint">💡 <strong>Works with any image</strong> — phone screenshots, blurry photos, dark scans, any language. The AI reads it all.</div>', unsafe_allow_html=True)
-
-    col_form, col_up = st.columns([1, 2])
-
-    with col_form:
+    col_left, col_right = st.columns([1, 2])
+    with col_left:
         st.markdown('<div class="section-title">Client Info</div>', unsafe_allow_html=True)
-        client_name = st.text_input("Client Name", placeholder="e.g. Nguyen, John")
+        client_name = st.text_input("Client Name *", placeholder="e.g. Nguyen, John")
         doc_type = st.selectbox("Document Type", [
-            "Auto-Detect",
-            "Insurance Card",
-            "Driver's License / ID",
-            "Tax Form (W-2 / 1099 / 1040)",
-            "Medical Record",
-            "Pay Stub",
-            "Bank Statement",
-            "Letter / Notice",
-            "Social Security Card",
-            "Medicare / Medicaid Card",
-            "Other"
+            "Auto-Detect","Insurance Card","Driver's License / ID",
+            "Tax Form (W-2 / 1099 / 1040)","Medical Record","Pay Stub",
+            "Bank Statement","Letter / Notice","Social Security Card",
+            "Medicare / Medicaid Card","Other"
         ])
-        notes = st.text_area("Notes (optional)", placeholder="Any context about this document...", height=80)
+        notes = st.text_area("Notes (optional)", placeholder="Any context...", height=80)
 
-    with col_up:
+    with col_right:
         st.markdown('<div class="section-title">Upload Document</div>', unsafe_allow_html=True)
         uploaded = st.file_uploader(
-            "Drop image here or click to browse",
-            type=["jpg", "jpeg", "png", "webp", "bmp", "tiff", "heic"],
-            accept_multiple_files=False,
+            "Upload document image",
+            type=["jpg","jpeg","png","webp","bmp","tiff"],
             label_visibility="collapsed"
         )
 
         if uploaded:
             img = Image.open(uploaded)
             w, h = img.size
-            st.image(img, caption=f"Uploaded: {uploaded.name} ({w}×{h}px)", use_container_width=True)
-            if max(w, h) < 400:
-                st.warning(f"⚠️ This image is very small ({w}×{h}px). The app will upscale it, but ask your client to send a higher quality photo for best results.")
+            issues = check_image_quality(img)
+
+            if issues:
+                # Show the image so they can see what's wrong
+                st.image(img, caption=f"{uploaded.name} ({w}×{h}px)", use_container_width=True)
+
+                # Quality fail warning
+                st.markdown(f"""
+                <div class="quality-fail">
+                    <h3>⚠️ Image Quality Too Low to Read</h3>
+                    <p>
+                        This image is <b>{w}×{h} pixels</b> — too small for the AI to read accurately.<br><br>
+                        <b>What this usually means:</b> The image was screenshotted multiple times, heavily compressed, or is a photo of a screen.<br><br>
+                        <b>Minimum required:</b> 600px on the shortest side ({min(w,h)}px detected).<br><br>
+                        Please ask your client to resend the document using the instructions in the <b>❓ How to Send Documents</b> tab.
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # Copy-paste message for client
+                st.markdown("**📋 Copy this message to send your client:**")
+                client_msg = f"""Hi! We received your document but the image quality is too low for our system to read it accurately.
+
+Please resend the document by:
+• If it's a photo: Open your camera roll, find the original photo, and send it directly — do NOT screenshot it
+• If it's a PDF or file: Attach the actual file from your downloads or email — do NOT take a photo of your screen
+• If it's a physical document: Place it flat in good lighting and take a fresh photo directly
+
+Thank you! — Vietrust"""
+                st.code(client_msg, language=None)
+
+            else:
+                st.markdown(f'<div class="quality-ok">✅ Image quality looks good — {w}×{h}px · Ready to scan</div>', unsafe_allow_html=True)
+                st.image(img, caption=f"{uploaded.name} ({w}×{h}px)", use_container_width=True)
 
     st.divider()
+    c1, c2 = st.columns([3, 1])
+    with c1:
+        # Only enable if image passes quality check
+        img_ok = uploaded and not check_image_quality(Image.open(uploaded))
+        run_ai = st.button("⚡ Read & Extract with AI", type="primary",
+                           disabled=not img_ok, use_container_width=True)
+    with c2:
+        enh_only = st.button("✨ Preview Enhancement",
+                             disabled=not uploaded, use_container_width=True)
 
-    btn_col1, btn_col2, btn_col3 = st.columns([2, 1, 1])
-    with btn_col1:
-        run_ai = st.button("🔍 Read & Extract with AI", type="primary",
-                           disabled=not uploaded, use_container_width=True)
-    with btn_col2:
-        enhance_btn = st.button("✨ Enhance Image Only", disabled=not uploaded, use_container_width=True)
-    with btn_col3:
-        clear = st.button("🗑️ Clear", disabled=not uploaded, use_container_width=True)
+    if enh_only and uploaded:
+        img = Image.open(uploaded)
+        issues = check_image_quality(img)
+        if issues:
+            st.error("Image is too low quality to enhance meaningfully. Please ask for a better photo.")
+        else:
+            with st.spinner("Generating enhanced previews..."):
+                versions = generate_enhanced_versions(img)
+            cols = st.columns(len(versions)+1)
+            with cols[0]:
+                st.image(img, caption="Original", use_container_width=True)
+            for i,(label,enh_img) in enumerate(versions):
+                with cols[i+1]:
+                    st.image(enh_img, caption=label, use_container_width=True)
+                    st.download_button(f"⬇️ {label}", img_to_bytes(enh_img),
+                                       file_name=f"enhanced_{label.replace(' ','_')}.png",
+                                       mime="image/png", key=f"prev_{i}")
 
-    # Enhance only
-    if enhance_btn and uploaded:
-        with st.spinner("Enhancing image..."):
-            img = Image.open(uploaded)
-            enhanced = enhance_image(img, enhance_level)
-        c1, c2 = st.columns(2)
-        with c1:
-            st.markdown("**Original**")
-            st.image(img, use_container_width=True)
-        with c2:
-            st.markdown("**Enhanced**")
-            st.image(enhanced, use_container_width=True)
-        st.download_button("⬇️ Download Enhanced Image", img_to_bytes(enhanced),
-                           file_name=f"{uploaded.name}_enhanced.png", mime="image/png")
-
-    # Full AI scan
     if run_ai and uploaded:
         if not api_key:
-            st.error("⚠️ Please enter your Anthropic API key in the sidebar first.")
+            st.error("⚠️ Please enter your Anthropic API key in the sidebar.")
             st.stop()
         if not client_name.strip():
-            st.warning("Please enter the client's name before scanning.")
+            st.warning("⚠️ Please enter the client name.")
             st.stop()
 
-        with st.spinner("🔍 Enhancing image and reading with AI..."):
-            img = Image.open(uploaded)
-            enhanced = enhance_image(img, enhance_level)
-            b64 = img_to_b64(enhanced)
+        img = Image.open(uploaded)
+        with st.spinner("⚡ Enhancing + reading with AI..."):
+            progress = st.progress(0, text="Enhancing image...")
+            versions = generate_enhanced_versions(img)
+            progress.progress(40, text="Sending to Claude AI...")
 
             try:
-                client = anthropic.Anthropic(api_key=api_key)
-                # Build prompt with context
-                context = f"\nDocument context: Client name is {client_name}. Expected document type: {doc_type}."
-                if notes:
-                    context += f" Additional notes: {notes}"
+                ai_client = anthropic.Anthropic(api_key=api_key)
+                content = []
+                for label, enh_img in versions:
+                    content.append({"type":"image","source":{"type":"base64","media_type":"image/png","data":img_to_b64(enh_img)}})
+                content.append({"type":"text","text":build_prompt(doc_type, client_name.strip(), notes)})
 
-                message = client.messages.create(
+                progress.progress(60, text="AI reading document...")
+                message = ai_client.messages.create(
                     model="claude-opus-4-6",
                     max_tokens=2000,
-                    messages=[{
-                        "role": "user",
-                        "content": [
-                            {"type": "image", "source": {"type": "base64", "media_type": "image/png", "data": b64}},
-                            {"type": "text", "text": PROMPT + context}
-                        ]
-                    }]
+                    messages=[{"role":"user","content":content}]
                 )
-
+                progress.progress(100, text="Done!")
                 extracted = message.content[0].text
-
-                # Parse confidence
                 confidence = "Medium"
-                if "CONFIDENCE: High" in extracted:
-                    confidence = "High"
-                elif "CONFIDENCE: Low" in extracted:
-                    confidence = "Low"
+                if "CONFIDENCE: High" in extracted: confidence = "High"
+                elif "CONFIDENCE: Low" in extracted: confidence = "Low"
 
-                # Save record
                 record = {
-                    "id": len(st.session_state.records) + 1,
+                    "id": len(st.session_state.records)+1,
                     "client": client_name.strip(),
                     "doc_type": doc_type,
                     "filename": uploaded.name,
@@ -415,145 +431,140 @@ with tab_scan:
                     "extracted_text": extracted,
                     "confidence": confidence,
                     "notes": notes,
-                    "enhanced_img": img_to_bytes(enhanced),
+                    "enhanced_img": img_to_bytes(versions[0][1]),
                     "original_size": f"{img.width}×{img.height}px",
-                    "enhanced_size": f"{enhanced.width}×{enhanced.height}px",
+                    "enhanced_size": f"{versions[0][1].width}×{versions[0][1].height}px",
                 }
                 st.session_state.records.insert(0, record)
+                progress.empty()
 
-                # Show result
-                st.success("✅ Document successfully read and saved to Records!")
-                st.markdown(f'<span class="badge-ok">✓ Confidence: {confidence}</span>', unsafe_allow_html=True)
+                badge = {"High":"badge-high","Medium":"badge-med","Low":"badge-low"}.get(confidence,"badge-med")
+                st.markdown(f'✅ &nbsp;<span class="{badge}">Confidence: {confidence}</span>', unsafe_allow_html=True)
                 st.markdown("<br>", unsafe_allow_html=True)
 
                 r1, r2 = st.columns(2)
                 with r1:
-                    t1, t2 = st.tabs(["Original", "Enhanced"])
-                    with t1:
-                        st.image(img, use_container_width=True)
-                    with t2:
-                        st.image(enhanced, use_container_width=True)
-                    st.caption(f"Original: {record['original_size']} → Enhanced: {record['enhanced_size']}")
-
+                    t1,t2,t3,t4 = st.tabs(["Original","CLAHE","High Contrast","B&W Text"])
+                    with t1: st.image(img, use_container_width=True)
+                    with t2: st.image(versions[0][1], use_container_width=True)
+                    with t3: st.image(versions[1][1], use_container_width=True)
+                    with t4: st.image(versions[2][1], use_container_width=True)
                 with r2:
                     st.markdown("**Extracted Text & Data**")
-                    st.markdown(f'<div class="result-box">{extracted.replace(chr(60), "&lt;")}</div>', unsafe_allow_html=True)
-                    st.download_button("⬇️ Download as TXT", extracted,
+                    st.markdown(f'<div class="result-box">{extracted.replace("<","&lt;")}</div>', unsafe_allow_html=True)
+                    st.download_button("⬇️ Download TXT", extracted,
                                        file_name=f"{client_name}_{doc_type}.txt", mime="text/plain")
+                st.success(f"✅ Saved to Records! Total: {len(st.session_state.records)}")
 
             except anthropic.AuthenticationError:
-                st.error("❌ Invalid API key. Please check your key in the sidebar.")
+                st.error("❌ Invalid API key.")
             except anthropic.RateLimitError:
-                st.error("❌ Rate limit reached. Please wait 30 seconds and try again.")
+                st.error("❌ Rate limit hit. Wait 30 seconds.")
             except Exception as e:
                 st.error(f"❌ Error: {str(e)}")
 
-# ════════════════════════════════════════════════════════
+# ════════════════════════════════════════════
 # TAB 2 — RECORDS
-# ════════════════════════════════════════════════════════
+# ════════════════════════════════════════════
 with tab_records:
-    st.markdown('<div class="section-title">📁 Processed Documents This Session</div>', unsafe_allow_html=True)
-
+    st.markdown('<div class="section-title">📁 Processed Documents</div>', unsafe_allow_html=True)
     if not st.session_state.records:
-        st.markdown('<div class="empty-state">📄<br><br>No documents scanned yet.<br>Go to the Scan tab to get started.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="empty-state">📄<br><br>No documents scanned yet.</div>', unsafe_allow_html=True)
     else:
-        # Search
-        search = st.text_input("🔍 Search by client name or document type", placeholder="Type to filter...")
-
-        filtered = st.session_state.records
-        if search:
-            filtered = [r for r in filtered if
-                        search.lower() in r["client"].lower() or
-                        search.lower() in r["doc_type"].lower()]
-
+        search = st.text_input("🔍 Search records", placeholder="Client name or document type...")
+        filtered = [r for r in st.session_state.records if
+                    not search or search.lower() in r["client"].lower() or search.lower() in r["doc_type"].lower()]
         st.caption(f"Showing {len(filtered)} of {len(st.session_state.records)} records")
-        st.divider()
-
         for rec in filtered:
-            with st.expander(f"#{rec['id']}  {rec['client']}  —  {rec['doc_type']}  |  {rec['timestamp']}"):
-                left, right = st.columns([1, 2])
-                with left:
+            badge = {"High":"🟢","Medium":"🟡","Low":"🔴"}.get(rec.get("confidence","Medium"),"🟡")
+            with st.expander(f"{badge}  #{rec['id']}  ·  {rec['client']}  ·  {rec['doc_type']}  ·  {rec['timestamp']}"):
+                l, r = st.columns([1,2])
+                with l:
                     if rec.get("enhanced_img"):
-                        st.image(rec["enhanced_img"], caption="Enhanced view", use_container_width=True)
+                        st.image(rec["enhanced_img"], use_container_width=True)
                     st.caption(f"File: {rec['filename']}")
                     st.caption(f"Size: {rec['original_size']} → {rec['enhanced_size']}")
                     st.caption(f"Confidence: {rec.get('confidence','—')}")
-                    if rec.get("notes"):
-                        st.caption(f"Notes: {rec['notes']}")
-                with right:
-                    st.markdown("**Extracted Data**")
+                with r:
                     st.markdown(f'<div class="result-box">{rec["extracted_text"].replace("<","&lt;")}</div>', unsafe_allow_html=True)
-                    st.download_button(
-                        "⬇️ Download TXT",
-                        rec["extracted_text"],
-                        file_name=f"{rec['client']}_{rec['doc_type']}.txt",
-                        mime="text/plain",
-                        key=f"dl_{rec['id']}"
-                    )
+                    st.download_button("⬇️ TXT", rec["extracted_text"],
+                                       file_name=f"{rec['client']}_{rec['doc_type']}.txt",
+                                       mime="text/plain", key=f"r_{rec['id']}")
 
-# ════════════════════════════════════════════════════════
+# ════════════════════════════════════════════
 # TAB 3 — EXPORT
-# ════════════════════════════════════════════════════════
+# ════════════════════════════════════════════
 with tab_export:
     st.markdown('<div class="section-title">📤 Export All Records</div>', unsafe_allow_html=True)
-
     if not st.session_state.records:
-        st.markdown('<div class="empty-state">📄<br><br>No records to export yet.<br>Scan some documents first.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="empty-state">📄<br><br>No records to export yet.</div>', unsafe_allow_html=True)
     else:
-        st.info(f"Ready to export **{len(st.session_state.records)} records** from this session.")
-
-        c1, c2, c3 = st.columns(3)
-
+        st.info(f"Ready to export **{len(st.session_state.records)} records**.")
+        c1,c2,c3 = st.columns(3)
         with c1:
             st.markdown("### 📊 Excel")
-            st.markdown("All records in a formatted spreadsheet. Best for sorting, filtering, and entering data into your system.")
-            if st.button("Generate Excel File", use_container_width=True):
-                excel_data = export_excel(st.session_state.records)
-                st.download_button(
-                    "⬇️ Download Excel",
-                    excel_data,
-                    file_name=f"DocuScan_Export_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
+            st.markdown("Formatted spreadsheet for data entry.")
+            if st.button("Generate Excel", use_container_width=True):
+                st.download_button("⬇️ Download Excel", export_excel(st.session_state.records),
+                    file_name=f"DocuScan_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    use_container_width=True
-                )
-
+                    use_container_width=True)
         with c2:
             st.markdown("### 📄 PDF Report")
-            st.markdown("Professional PDF with all extracted text. Best for printing or sharing with clients.")
-            if st.button("Generate PDF Report", use_container_width=True):
-                pdf_data = export_pdf(st.session_state.records)
-                st.download_button(
-                    "⬇️ Download PDF",
-                    pdf_data,
-                    file_name=f"DocuScan_Report_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.pdf",
-                    mime="application/pdf",
-                    use_container_width=True
-                )
-
+            st.markdown("Professional PDF for printing or sharing.")
+            if st.button("Generate PDF", use_container_width=True):
+                st.download_button("⬇️ Download PDF", export_pdf(st.session_state.records),
+                    file_name=f"DocuScan_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.pdf",
+                    mime="application/pdf", use_container_width=True)
         with c3:
-            st.markdown("### 📋 Text Summary")
-            st.markdown("Simple plain text file with all extracted data. Best for copying into other systems.")
-            if st.button("Generate Text File", use_container_width=True):
+            st.markdown("### 📋 Plain Text")
+            st.markdown("Simple text for any other system.")
+            if st.button("Generate TXT", use_container_width=True):
                 lines = []
                 for rec in st.session_state.records:
-                    lines.append(f"{'='*60}")
-                    lines.append(f"Client: {rec['client']}")
-                    lines.append(f"Type: {rec['doc_type']}")
-                    lines.append(f"Date: {rec['timestamp']}")
-                    lines.append(f"Confidence: {rec.get('confidence','—')}")
-                    lines.append(f"{'─'*40}")
-                    lines.append(rec["extracted_text"])
-                    lines.append("")
-                txt = "\n".join(lines)
-                st.download_button(
-                    "⬇️ Download TXT",
-                    txt,
-                    file_name=f"DocuScan_Summary_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.txt",
-                    mime="text/plain",
-                    use_container_width=True
-                )
-
+                    lines += [f"{'='*60}",f"Client: {rec['client']}",f"Type: {rec['doc_type']}",
+                              f"Date: {rec['timestamp']}",f"Confidence: {rec.get('confidence','—')}",
+                              "─"*40,rec["extracted_text"],""]
+                st.download_button("⬇️ Download TXT","\n".join(lines),
+                    file_name=f"DocuScan_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.txt",
+                    mime="text/plain", use_container_width=True)
         st.divider()
-        if st.button("🗑️ Clear All Records from Session", type="secondary"):
-            st.session_state.records = []
-            st.rerun()
+        if st.button("🗑️ Clear All Records", type="secondary"):
+            st.session_state.records = []; st.rerun()
+
+# ════════════════════════════════════════════
+# TAB 4 — HOW TO SEND DOCUMENTS
+# ════════════════════════════════════════════
+with tab_help:
+    st.markdown('<div class="section-title">❓ How to Send Documents Correctly</div>', unsafe_allow_html=True)
+    st.markdown("Share this tab with your clients or copy the instructions below to send them.")
+    st.divider()
+
+    for key, info in HOW_TO_SEND.items():
+        st.markdown(f"""
+        <div class="how-to-box">
+            <h4>{info['title']}</h4>
+            <p>{info['steps']}</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.divider()
+    st.markdown("### 📋 Copy & Send to Clients")
+    st.markdown("Copy this and send it by text or email to any client who needs to send you documents:")
+    client_instructions = """Hi! To send us your documents clearly, please follow these steps:
+
+📱 PHOTO IN YOUR CAMERA ROLL:
+Open the photo → tap Share → send directly through text or email.
+Do NOT take a screenshot of it — always send the original photo.
+
+📄 PDF OR FILE:
+Find the file in your downloads or email → use Share or Attach to send it.
+Do NOT photograph your screen — always attach the actual file.
+
+📷 PHYSICAL DOCUMENT (paper):
+Place it flat on a table in good lighting → open your camera → tap the document to focus → take the photo and send it directly.
+
+✅ QUICK RULE: Always send the ORIGINAL file or photo — never a screenshot of it.
+
+Thank you! — Vietrust Insurance & Tax"""
+    st.code(client_instructions, language=None)
