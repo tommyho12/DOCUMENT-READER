@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Vietrust — Document Upload</title>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --green: #2ea043;
+    --green-dk: #238636;
+    --green-lt: #0d2818;
+    --blue: #1f6feb;
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #21262d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --radius: 12px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #0d2818, #1a3a2a);
+    border-bottom: 1px solid var(--green-dk);
+    padding: 20px 20px 16px;
+    text-align: center;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 4px 20px rgba(46,160,67,0.2);
+  }
+  .logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo span { color: var(--green); }
+  .tagline { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  /* Steps indicator */
+  .steps {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0; padding: 16px 20px; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .step {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    flex: 1;
+  }
+  .step-dot {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+    background: var(--border); color: var(--muted);
+    transition: all 0.3s;
+  }
+  .step.active .step-dot { background: var(--green); color: white; box-shadow: 0 0 12px rgba(46,160,67,0.5); }
+  .step.done .step-dot { background: var(--green-dk); color: white; }
+  .step-label { font-size: 10px; color: var(--muted); text-align: center; }
+  .step.active .step-label { color: var(--green); font-weight: 600; }
+  .step-line { height: 2px; flex: 0.5; background: var(--border); margin-bottom: 14px; transition: background 0.3s; }
+  .step-line.done { background: var(--green-dk); }
+
+  /* Container */
+  .container { max-width: 500px; margin: 0 auto; padding: 24px 16px; }
+
+  /* Section */
+  .section { margin-bottom: 20px; }
+  .section-title {
+    font-size: 11px; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px; margin-bottom: 12px;
+  }
+
+  /* Inputs */
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 6px; }
+  .field input, .field select {
+    width: 100%; padding: 13px 14px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-size: 15px;
+    outline: none; transition: border 0.2s; appearance: none;
+    -webkit-appearance: none;
+  }
+  .field input:focus, .field select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(46,160,67,0.12); }
+  .field input::placeholder { color: #444; }
+
+  /* Doc type grid */
+  .doc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .doc-btn {
+    padding: 12px 8px; background: var(--bg);
+    border: 1.5px solid var(--border); border-radius: 10px;
+    color: var(--muted); font-size: 12px; font-weight: 500;
+    text-align: center; cursor: pointer; transition: all 0.2s;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .doc-btn .doc-icon { font-size: 22px; }
+  .doc-btn.selected { border-color: var(--green); color: var(--green); background: var(--green-lt); }
+
+  /* Upload zone */
+  .upload-zone {
+    border: 2px dashed var(--border); border-radius: var(--radius);
+    padding: 30px 20px; text-align: center; cursor: pointer;
+    transition: all 0.2s; background: var(--bg);
+    position: relative;
+  }
+  .upload-zone:hover, .upload-zone.drag-over { border-color: var(--green); background: var(--green-lt); }
+  .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .upload-icon { font-size: 36px; margin-bottom: 10px; }
+  .upload-zone h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .upload-zone p { font-size: 12px; color: var(--muted); }
+
+  /* File list */
+  .file-list { margin-top: 12px; }
+  .file-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px;
+  }
+  .file-thumb { width: 44px; height: 44px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); flex-shrink: 0; }
+  .file-info { flex: 1; min-width: 0; }
+  .file-name { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .file-size { font-size: 11px; color: var(--muted); }
+  .file-status { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; white-space: nowrap; }
+  .s-wait { background: var(--border); color: var(--muted); }
+  .s-proc { background: #0d1b2e; color: #60a5fa; }
+  .s-done { background: var(--green-lt); color: var(--green); }
+  .s-err  { background: #2d1117; color: #f85149; }
+  .file-rm { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; padding: 0 4px; flex-shrink: 0; }
+
+  /* Buttons */
+  .btn {
+    width: 100%; padding: 15px; border: none; border-radius: 10px;
+    font-size: 16px; font-weight: 700; cursor: pointer;
+    transition: all 0.2s; letter-spacing: -0.2px;
+  }
+  .btn-primary { background: var(--green); color: white; }
+  .btn-primary:hover { background: var(--green-dk); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(46,160,67,0.35); }
+  .btn-primary:disabled { background: var(--border); color: var(--muted); transform: none; box-shadow: none; cursor: not-allowed; }
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--border); }
+
+  /* Progress */
+  .progress-wrap { margin: 12px 0; }
+  .progress-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--green-dk), var(--green)); border-radius: 3px; transition: width 0.4s ease; }
+
+  /* Result card */
+  .result-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden; margin-bottom: 16px;
+  }
+  .result-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px; background: var(--green-lt); border-bottom: 1px solid var(--green-dk);
+  }
+  .result-fname { font-size: 12px; font-weight: 600; font-family: monospace; }
+  .result-badge { font-size: 10px; background: var(--green-dk); color: white; padding: 2px 8px; border-radius: 10px; }
+  .result-imgs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px; }
+  .result-img-wrap { position: relative; }
+  .result-img-label { font-size: 10px; color: var(--muted); margin-bottom: 4px; font-weight: 600; text-transform: uppercase; }
+  .result-imgs img, .result-imgs canvas { width: 100%; height: auto; display: block; border-radius: 6px; border: 1px solid var(--border); }
+  .result-text-wrap { padding: 0 12px 12px; }
+  .result-text-label { font-size: 10px; color: var(--muted); font-weight: 600; text-transform: uppercase; margin-bottom: 6px; }
+  .result-text {
+    background: var(--bg); border: 1px solid var(--border); border-left: 3px solid var(--green);
+    border-radius: 8px; padding: 12px; font-size: 12px; line-height: 1.8;
+    font-family: 'Courier New', monospace; color: var(--text);
+    max-height: 200px; overflow-y: auto; white-space: pre-wrap;
+  }
+  .result-actions { display: flex; gap: 8px; padding: 0 12px 12px; }
+  .result-btn {
+    flex: 1; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    cursor: pointer; border: none; transition: all 0.2s;
+  }
+  .rb-pdf { background: #1f6feb; color: white; }
+  .rb-pdf:hover { background: #388bfd; }
+  .rb-img { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .rb-img:hover { background: var(--border); }
+
+  /* Success screen */
+  .success-screen {
+    display: none; text-align: center; padding: 40px 20px;
+  }
+  .success-icon { font-size: 64px; margin-bottom: 16px; }
+  .success-title { font-size: 24px; font-weight: 800; color: var(--green); margin-bottom: 8px; }
+  .success-sub { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 24px; }
+  .success-card {
+    background: var(--surface); border: 1px solid var(--green-dk);
+    border-radius: var(--radius); padding: 16px; margin-bottom: 24px; text-align: left;
+  }
+  .success-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .success-row:last-child { border-bottom: none; }
+  .success-row span:first-child { color: var(--muted); }
+  .success-row span:last-child { font-weight: 600; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 20px; font-size: 13px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4); z-index: 999;
+    opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+  .toast.ok { border-color: var(--green); color: var(--green); }
+  .toast.err { border-color: #f85149; color: #f85149; }
+
+  /* Error box */
+  .err-box { background: #2d1117; border: 1px solid #f85149; border-radius: 10px; padding: 14px 16px; font-size: 13px; color: #f85149; margin-top: 12px; }
+
+  /* EmailJS setup notice */
+  .setup-notice {
+    background: #271d0b; border: 1px solid #d29922; border-radius: 10px;
+    padding: 14px 16px; font-size: 12px; color: #d29922; margin-bottom: 16px; line-height: 1.7;
+  }
+  .setup-notice strong { color: #f5c842; }
+
+  #file-input { display: none; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">Vie<span>trust</span></div>
+  <div class="tagline">Secure Document Upload Portal</div>
+</div>
+
+<div class="steps">
+  <div class="step active" id="step1">
+    <div class="step-dot">1</div>
+    <div class="step-label">Your Info</div>
+  </div>
+  <div class="step-line" id="line1"></div>
+  <div class="step active" id="step2dot" style="opacity:0.4">
+    <div class="step-dot">2</div>
+    <div class="step-label">Documents</div>
+  </div>
+  <div class="step-line" id="line2"></div>
+  <div class="step" id="step3dot" style="opacity:0.4">
+    <div class="step-dot">3</div>
+    <div class="step-label">Send</div>
+  </div>
+</div>
+
+<!-- ══ MAIN FORM ══ -->
+<div class="container" id="main-form">
+
+  <!-- EmailJS Config Notice -->
+  <div class="setup-notice" id="setup-notice">
+    ⚙️ <strong>Setup required:</strong> To enable email delivery, enter your EmailJS credentials below. Get free keys at <strong>emailjs.com</strong> → create account → add Gmail service → create template.
+  </div>
+
+  <!-- EmailJS Config (hidden in production, shown for setup) -->
+  <div class="card" id="emailjs-config">
+    <div class="section-title">EmailJS Configuration</div>
+    <div class="field">
+      <label>EmailJS Public Key</label>
+      <input type="text" id="ejs-pubkey" placeholder="e.g. abc123XYZ...">
+    </div>
+    <div class="field">
+      <label>EmailJS Service ID</label>
+      <input type="text" id="ejs-service" placeholder="e.g. service_xxxxxx">
+    </div>
+    <div class="field">
+      <label>EmailJS Template ID</label>
+      <input type="text" id="ejs-template" placeholder="e.g. template_xxxxxx">
+    </div>
+    <div class="field">
+      <label>Send documents to this email</label>
+      <input type="email" id="ejs-to-email" placeholder="your@gmail.com">
+    </div>
+    <button class="btn btn-secondary" style="margin-top:4px" onclick="saveEmailConfig()">Save Email Config</button>
+  </div>
+
+  <!-- Gemini API Key -->
+  <div class="card">
+    <div class="section-title">AI Reading Engine</div>
+    <div class="field">
+      <label>Gemini API Key (for AI text extraction)</label>
+      <input type="password" id="gemini-key" placeholder="AIza...">
+    </div>
+    <p style="font-size:11px;color:var(--muted)">Get free at <strong style="color:var(--text)">aistudio.google.com</strong> → Get API Key</p>
+  </div>
+
+  <!-- Step 1: Client Info -->
+  <div class="section">
+    <div class="section-title">Step 1 — Your Information</div>
+    <div class="card">
+      <div class="field">
+        <label>Full Name *</label>
+        <input type="text" id="client-name" placeholder="First Last" autocomplete="name">
+      </div>
+      <div class="field">
+        <label>Phone Number *</label>
+        <input type="tel" id="client-phone" placeholder="(555) 555-5555" autocomplete="tel">
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Date of Birth *</label>
+        <input type="date" id="client-dob">
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Document Type -->
+  <div class="section">
+    <div class="section-title">Step 2 — Document Type</div>
+    <div class="doc-grid">
+      <div class="doc-btn" onclick="selectDoc(this,'Insurance Card')">
+        <span class="doc-icon">🏥</span>Insurance Card
+      </div>
+      <div class="doc-btn" onclick="selectDoc(this,'ID / Driver\'s License')">
+        <span class="doc-icon">🪪</span>ID / License
+      </div>
+      <div class="doc-btn" onclick="selectDoc(this,'Tax Form')">
+        <span class="doc-icon">📋</span>Tax Form
+      </div>
+      <div class="doc-btn" onclick="selectDoc(this,'Medical Record')">
+        <span class="doc-icon">🩺</span>Medical Record
+      </div>
+      <div class="doc-btn" onclick="selectDoc(this,'Pay Stub')">
+        <span class="doc-icon">💵</span>Pay Stub
+      </div>
+      <div class="doc-btn" onclick="selectDoc(this,'Other Document')">
+        <span class="doc-icon">📄</span>Other
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: Upload -->
+  <div class="section">
+    <div class="section-title">Step 3 — Upload Documents</div>
+    <div class="upload-zone" id="drop-zone">
+      <input type="file" id="file-input" multiple accept="image/*,.pdf">
+      <div class="upload-icon">📎</div>
+      <h3>Tap to upload or take photo</h3>
+      <p>Photos, screenshots, PDFs — any document</p>
+    </div>
+    <div class="file-list" id="file-list"></div>
+  </div>
+
+  <!-- Quality warning -->
+  <div id="quality-warn" style="display:none" class="err-box">
+    ⚠️ <strong>Low quality images detected.</strong> For best results, send the original file — not a screenshot of a screenshot.
+  </div>
+
+  <!-- Results -->
+  <div id="results-section" style="display:none">
+    <div class="section-title" style="margin-bottom:12px">Enhanced Results — Ready to Send</div>
+    <div id="results-list"></div>
+  </div>
+
+  <!-- Send button -->
+  <div style="margin-top:8px">
+    <div class="progress-wrap" id="progress-wrap" style="display:none">
+      <div class="progress-label" id="progress-label">Processing...</div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+    <button class="btn btn-primary" id="send-btn" onclick="processAndSend()" disabled>
+      ⚡ Process & Send to Vietrust
+    </button>
+  </div>
+
+</div>
+
+<!-- ══ SUCCESS SCREEN ══ -->
+<div class="container">
+  <div class="success-screen" id="success-screen">
+    <div class="success-icon">✅</div>
+    <div class="success-title">Documents Sent!</div>
+    <div class="success-sub">Your documents have been processed and sent to Vietrust. We will contact you shortly.</div>
+    <div class="success-card" id="success-summary"></div>
+    <button class="btn btn-secondary" onclick="resetForm()">Submit Another Document</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ─────────────────────────────────────────────
+const files = [];
+let selectedDocType = '';
+let emailConfig = {
+  pubKey: localStorage.getItem('ejs_pubkey') || '',
+  serviceId: localStorage.getItem('ejs_service') || '',
+  templateId: localStorage.getItem('ejs_template') || '',
+  toEmail: localStorage.getItem('ejs_to_email') || ''
+};
+
+// Pre-fill saved config
+if (emailConfig.pubKey) document.getElementById('ejs-pubkey').value = emailConfig.pubKey;
+if (emailConfig.serviceId) document.getElementById('ejs-service').value = emailConfig.serviceId;
+if (emailConfig.templateId) document.getElementById('ejs-template').value = emailConfig.templateId;
+if (emailConfig.toEmail) document.getElementById('ejs-to-email').value = emailConfig.toEmail;
+if (emailConfig.pubKey && emailConfig.serviceId && emailConfig.templateId) {
+  document.getElementById('setup-notice').style.display = 'none';
+  document.getElementById('emailjs-config').style.display = 'none';
+}
+
+function saveEmailConfig() {
+  emailConfig.pubKey = document.getElementById('ejs-pubkey').value.trim();
+  emailConfig.serviceId = document.getElementById('ejs-service').value.trim();
+  emailConfig.templateId = document.getElementById('ejs-template').value.trim();
+  emailConfig.toEmail = document.getElementById('ejs-to-email').value.trim();
+  localStorage.setItem('ejs_pubkey', emailConfig.pubKey);
+  localStorage.setItem('ejs_service', emailConfig.serviceId);
+  localStorage.setItem('ejs_template', emailConfig.templateId);
+  localStorage.setItem('ejs_to_email', emailConfig.toEmail);
+  document.getElementById('setup-notice').style.display = 'none';
+  document.getElementById('emailjs-config').style.display = 'none';
+  showToast('✓ Email config saved!', 'ok');
+}
+
+// ── Doc type ──────────────────────────────────────────
+function selectDoc(el, type) {
+  document.querySelectorAll('.doc-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedDocType = type;
+  updateSendBtn();
+}
+
+// ── File upload ───────────────────────────────────────
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); addFiles([...e.dataTransfer.files]); });
+fileInput.addEventListener('change', e => { addFiles([...e.target.files]); fileInput.value = ''; });
+
+function addFiles(newFiles) {
+  newFiles.forEach(f => {
+    if (!f.type.startsWith('image/') && f.type !== 'application/pdf') return;
+    files.push({ file: f, id: Math.random().toString(36).slice(2), status: 'waiting', result: null });
+  });
+  renderFileList();
+  updateSendBtn();
+  checkQuality();
+}
+
+function renderFileList() {
+  const el = document.getElementById('file-list');
+  if (!files.length) { el.innerHTML = ''; return; }
+  el.innerHTML = files.map((item, i) => `
+    <div class="file-item" id="fi-${item.id}">
+      <img class="file-thumb" id="fth-${item.id}" src="">
+      <div class="file-info">
+        <div class="file-name">${item.file.name}</div>
+        <div class="file-size">${(item.file.size/1024).toFixed(0)} KB</div>
+      </div>
+      <span class="file-status s-${item.status}" id="fs-${item.id}">${{waiting:'Ready',processing:'Processing...',done:'Done ✓',error:'Error'}[item.status]}</span>
+      <button class="file-rm" onclick="removeFile(${i})">×</button>
+    </div>
+  `).join('');
+  files.forEach(item => {
+    if (!item.file.type.startsWith('image/')) return;
+    const img = document.getElementById('fth-' + item.id);
+    if (img) { const r = new FileReader(); r.onload = e => img.src = e.target.result; r.readAsDataURL(item.file); }
+  });
+}
+
+function removeFile(i) { files.splice(i, 1); renderFileList(); updateSendBtn(); checkQuality(); }
+
+function checkQuality() {
+  const warn = document.getElementById('quality-warn');
+  let hasLow = false;
+  files.forEach(item => {
+    if (!item.file.type.startsWith('image/')) return;
+    const img = new Image();
+    const url = URL.createObjectURL(item.file);
+    img.onload = () => { if (Math.min(img.width, img.height) < 600) hasLow = true; URL.revokeObjectURL(url); warn.style.display = hasLow ? 'block' : 'none'; };
+    img.src = url;
+  });
+}
+
+function updateSendBtn() {
+  const name = document.getElementById('client-name').value.trim();
+  const phone = document.getElementById('client-phone').value.trim();
+  const dob = document.getElementById('client-dob').value;
+  document.getElementById('send-btn').disabled = !(name && phone && dob && selectedDocType && files.length > 0);
+}
+
+['client-name','client-phone','client-dob'].forEach(id => document.getElementById(id).addEventListener('input', updateSendBtn));
+
+// ── Image Enhancement ─────────────────────────────────
+function enhanceImageCanvas(imgEl) {
+  const c = document.createElement('canvas');
+  const MAX = 1800;
+  let w = imgEl.naturalWidth, h = imgEl.naturalHeight;
+  if (Math.max(w,h) < MAX) {
+    const scale = (MAX / Math.max(w,h)) * (Math.max(w,h) < 300 ? 2 : 1);
+    w = Math.round(w * scale); h = Math.round(h * scale);
+  }
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(imgEl, 0, 0, w, h);
+
+  // Auto levels
+  let id = ctx.getImageData(0, 0, w, h), d = id.data;
+  for (let ch = 0; ch < 3; ch++) {
+    let mn = 255, mx = 0;
+    for (let i = ch; i < d.length; i += 4) { mn = Math.min(mn, d[i]); mx = Math.max(mx, d[i]); }
+    const range = mx - mn || 1;
+    for (let i = ch; i < d.length; i += 4) d[i] = Math.min(255, Math.max(0, Math.round((d[i]-mn)/range*255)));
+  }
+  ctx.putImageData(id, 0, 0);
+
+  // Contrast + sharpen
+  id = ctx.getImageData(0, 0, w, h); d = id.data;
+  const cf = (259*(80+255))/(255*(259-80));
+  for (let i = 0; i < d.length; i += 4) {
+    d[i]   = Math.min(255,Math.max(0,Math.round(cf*(d[i]-128)+128)));
+    d[i+1] = Math.min(255,Math.max(0,Math.round(cf*(d[i+1]-128)+128)));
+    d[i+2] = Math.min(255,Math.max(0,Math.round(cf*(d[i+2]-128)+128)));
+  }
+  ctx.putImageData(id, 0, 0);
+
+  // Unsharp mask
+  const tmp = document.createElement('canvas'); tmp.width=w; tmp.height=h;
+  const tc = tmp.getContext('2d'); tc.filter='blur(2px)'; tc.drawImage(c,0,0);
+  const src=ctx.getImageData(0,0,w,h), blr=tc.getImageData(0,0,w,h), out=ctx.createImageData(w,h);
+  for(let i=0;i<src.data.length;i+=4) {
+    for(let ch=0;ch<3;ch++) out.data[i+ch]=Math.min(255,Math.max(0,Math.round(src.data[i+ch]*2.2-blr.data[i+ch]*1.2)));
+    out.data[i+3]=src.data[i+3];
+  }
+  ctx.putImageData(out,0,0);
+  return c;
+}
+
+function canvasToBase64(canvas) { return canvas.toDataURL('image/png').split(',')[1]; }
+
+// ── Gemini AI Reading ─────────────────────────────────
+async function readWithGemini(b64, docType, clientName) {
+  const key = document.getElementById('gemini-key').value.trim();
+  if (!key) return '[AI reading skipped — no Gemini key provided]';
+
+  const prompt = `You are an elite document reading AI. Read this document carefully.
+Client: ${clientName} | Document type: ${docType}
+Extract ALL visible text — names, IDs, dates, amounts, addresses, phone numbers.
+Be thorough. Mark unclear text with [?].
+Format: DOCUMENT TYPE / KEY FIELDS / FULL TEXT`;
+
+  const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${key}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [
+        { inline_data: { mime_type: 'image/png', data: b64 } },
+        { text: prompt }
+      ]}]
+    })
+  });
+  const data = await resp.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || '[Could not extract text]';
+}
+
+// ── Generate PDF ──────────────────────────────────────
+function generatePDF(clientName, phone, dob, docType, extractedText, imgDataUrl) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W = 210, margin = 15;
+
+  // Header
+  doc.setFillColor(13, 40, 24);
+  doc.rect(0, 0, W, 32, 'F');
+  doc.setTextColor(46, 160, 67);
+  doc.setFontSize(20); doc.setFont('helvetica','bold');
+  doc.text('DocuScan Pro', margin, 13);
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  doc.setTextColor(139, 148, 158);
+  doc.text('Powered by Vietrust Insurance & Tax', margin, 20);
+  doc.text(`Generated: ${new Date().toLocaleString()}`, margin, 27);
+
+  // Client info box
+  doc.setFillColor(22, 27, 34);
+  doc.roundedRect(margin, 38, W-margin*2, 36, 3, 3, 'F');
+  doc.setTextColor(139,148,158); doc.setFontSize(8); doc.setFont('helvetica','bold');
+  doc.text('CLIENT INFORMATION', margin+6, 46);
+  doc.setTextColor(230,237,243); doc.setFontSize(10); doc.setFont('helvetica','normal');
+  doc.text(`Name: ${clientName}`, margin+6, 54);
+  doc.text(`Phone: ${phone}`, margin+6, 61);
+  doc.text(`DOB: ${dob}`, margin+6, 68);
+  doc.setTextColor(46,160,67);
+  doc.text(`Document Type: ${docType}`, W/2+6, 54);
+
+  // Enhanced image
+  if (imgDataUrl) {
+    try {
+      doc.setTextColor(139,148,158); doc.setFontSize(8); doc.setFont('helvetica','bold');
+      doc.text('ENHANCED DOCUMENT IMAGE', margin, 84);
+      doc.addImage(imgDataUrl, 'PNG', margin, 87, W-margin*2, 80);
+    } catch(e) {}
+  }
+
+  // Extracted text
+  const textY = imgDataUrl ? 175 : 84;
+  doc.setFillColor(22,27,34);
+  doc.roundedRect(margin, textY, W-margin*2, 8, 2, 2, 'F');
+  doc.setTextColor(46,160,67); doc.setFontSize(8); doc.setFont('helvetica','bold');
+  doc.text('AI EXTRACTED TEXT & DATA', margin+4, textY+5.5);
+  doc.setTextColor(230,237,243); doc.setFontSize(8); doc.setFont('helvetica','normal');
+  const lines = doc.splitTextToSize(extractedText || 'No text extracted.', W-margin*2-8);
+  doc.text(lines, margin+4, textY+14);
+
+  return doc.output('datauristring');
+}
+
+// ── Main Process & Send ───────────────────────────────
+async function processAndSend() {
+  const clientName = document.getElementById('client-name').value.trim();
+  const phone = document.getElementById('client-phone').value.trim();
+  const dob = document.getElementById('client-dob').value;
+
+  if (!clientName || !phone || !dob || !selectedDocType || !files.length) {
+    showToast('Please fill in all fields and upload at least one document.', 'err'); return;
+  }
+
+  document.getElementById('send-btn').disabled = true;
+  document.getElementById('progress-wrap').style.display = 'block';
+  document.getElementById('results-section').style.display = 'none';
+  document.getElementById('results-list').innerHTML = '';
+
+  const results = [];
+  const total = files.length;
+
+  for (let i = 0; i < files.length; i++) {
+    const item = files[i];
+    item.status = 'processing';
+    const st = document.getElementById('fs-' + item.id);
+    if (st) { st.className = 'file-status s-proc'; st.textContent = 'Processing...'; }
+
+    setProgress(Math.round((i/total)*60), `Processing ${item.file.name}...`);
+
+    try {
+      if (!item.file.type.startsWith('image/')) {
+        // PDF — skip enhancement, just note it
+        results.push({ name: item.file.name, enhanced: null, extracted: '[PDF file — AI reading requires image format]', origSrc: null });
+        item.status = 'done';
+        if (st) { st.className = 'file-status s-done'; st.textContent = 'Done ✓'; }
+        continue;
+      }
+
+      // Load image
+      const origSrc = await fileToDataUrl(item.file);
+      const img = new Image(); img.src = origSrc;
+      await new Promise(res => img.onload = res);
+
+      // Enhance
+      const canvas = enhanceImageCanvas(img);
+      const enhDataUrl = canvas.toDataURL('image/png');
+      const b64 = canvasToBase64(canvas);
+
+      // AI read
+      setProgress(Math.round((i/total)*60 + 20), `AI reading ${item.file.name}...`);
+      const extracted = await readWithGemini(b64, selectedDocType, clientName);
+
+      results.push({ name: item.file.name, enhanced: enhDataUrl, extracted, origSrc });
+      item.status = 'done';
+      if (st) { st.className = 'file-status s-done'; st.textContent = 'Done ✓'; }
+
+    } catch (err) {
+      item.status = 'error';
+      if (st) { st.className = 'file-status s-err'; st.textContent = 'Error'; }
+      results.push({ name: item.file.name, enhanced: null, extracted: `Error: ${err.message}`, origSrc: null });
+    }
+  }
+
+  // Show results
+  setProgress(80, 'Generating PDFs...');
+  document.getElementById('results-section').style.display = 'block';
+  const rl = document.getElementById('results-list');
+
+  results.forEach((res, idx) => {
+    const pdfData = generatePDF(clientName, phone, dob, selectedDocType, res.extracted, res.enhanced);
+
+    const div = document.createElement('div');
+    div.className = 'result-card';
+    div.innerHTML = `
+      <div class="result-head">
+        <span class="result-fname">${res.name}</span>
+        <span class="result-badge">✓ Processed</span>
+      </div>
+      ${res.origSrc ? `
+      <div class="result-imgs">
+        <div class="result-img-wrap">
+          <div class="result-img-label">Original</div>
+          <img src="${res.origSrc}">
+        </div>
+        <div class="result-img-wrap">
+          <div class="result-img-label">Enhanced</div>
+          ${res.enhanced ? `<img src="${res.enhanced}">` : '<p style="font-size:11px;color:var(--muted);padding:10px">N/A</p>'}
+        </div>
+      </div>` : ''}
+      <div class="result-text-wrap">
+        <div class="result-text-label">AI Extracted Text</div>
+        <div class="result-text">${res.extracted.replace(/</g,'&lt;')}</div>
+      </div>
+      <div class="result-actions">
+        <a class="result-btn rb-pdf" href="${pdfData}" download="${clientName}_${selectedDocType}_${idx+1}.pdf">⬇️ Download PDF</a>
+        ${res.enhanced ? `<a class="result-btn rb-img" href="${res.enhanced}" download="${res.name}_enhanced.png">⬇️ Enhanced Image</a>` : ''}
+      </div>
+    `;
+    rl.appendChild(div);
+
+    // Store PDF for email
+    res.pdfData = pdfData;
+    res.pdfName = `${clientName}_${selectedDocType}_${idx+1}.pdf`;
+  });
+
+  // Send email
+  setProgress(90, 'Sending to Vietrust...');
+  let emailSent = false;
+
+  if (emailConfig.pubKey && emailConfig.serviceId && emailConfig.templateId && emailConfig.toEmail) {
+    try {
+      emailjs.init(emailConfig.pubKey);
+      const dobFormatted = new Date(dob + 'T00:00:00').toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
+      const allText = results.map((r,i) => `--- Document ${i+1}: ${r.name} ---\n${r.extracted}`).join('\n\n');
+
+      await emailjs.send(emailConfig.serviceId, emailConfig.templateId, {
+        to_email: emailConfig.toEmail,
+        from_name: clientName,
+        client_name: clientName,
+        client_phone: phone,
+        client_dob: dobFormatted,
+        doc_type: selectedDocType,
+        doc_count: results.length.toString(),
+        extracted_text: allText.substring(0, 3000),
+        submission_time: new Date().toLocaleString(),
+        reply_to: 'noreply@vietrust.com'
+      });
+      emailSent = true;
+    } catch(e) {
+      console.error('Email error:', e);
+    }
+  }
+
+  setProgress(100, 'Done!');
+
+  // Show success
+  setTimeout(() => {
+    document.getElementById('main-form').style.display = 'none';
+    document.getElementById('success-screen').style.display = 'block';
+    const dobDisplay = new Date(dob+'T00:00:00').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+    document.getElementById('success-summary').innerHTML = `
+      <div class="success-row"><span>Name</span><span>${clientName}</span></div>
+      <div class="success-row"><span>Phone</span><span>${phone}</span></div>
+      <div class="success-row"><span>Date of Birth</span><span>${dobDisplay}</span></div>
+      <div class="success-row"><span>Document Type</span><span>${selectedDocType}</span></div>
+      <div class="success-row"><span>Files Processed</span><span>${results.length}</span></div>
+      <div class="success-row"><span>Email Sent</span><span>${emailSent ? '✓ Yes' : '⚠️ Configure EmailJS to enable'}</span></div>
+    `;
+    document.getElementById('progress-wrap').style.display = 'none';
+  }, 600);
+}
+
+// ── Helpers ───────────────────────────────────────────
+function setProgress(pct, label) {
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = label;
+}
+
+function fileToDataUrl(file) {
+  return new Promise(res => { const r = new FileReader(); r.onload = e => res(e.target.result); r.readAsDataURL(file); });
+}
+
+function showToast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast show ${type}`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function resetForm() {
+  files.length = 0;
+  selectedDocType = '';
+  document.getElementById('client-name').value = '';
+  document.getElementById('client-phone').value = '';
+  document.getElementById('client-dob').value = '';
+  document.querySelectorAll('.doc-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('results-list').innerHTML = '';
+  document.getElementById('results-section').style.display = 'none';
+  document.getElementById('quality-warn').style.display = 'none';
+  document.getElementById('send-btn').disabled = true;
+  renderFileList();
+  document.getElementById('main-form').style.display = 'block';
+  document.getElementById('success-screen').style.display = 'none';
+}
+</script>
+</body>
+</html>
