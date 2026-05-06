@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Vietrust — Document Upload</title>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -38,7 +39,7 @@
   .file-list { margin-top: 12px; }
   .file-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; }
   .file-thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); flex-shrink: 0; }
-  .file-thumb-pdf { width: 48px; height: 48px; border-radius: 6px; border: 1px solid var(--border); flex-shrink: 0; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .file-thumb-pdf { width: 48px; height: 48px; border-radius: 6px; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
   .file-info { flex: 1; min-width: 0; }
   .file-name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .file-size { font-size: 11px; color: var(--muted); margin-top: 2px; }
@@ -75,6 +76,7 @@
 <div class="container">
   <div id="main-form">
 
+    <!-- Step 1: Info -->
     <div class="card">
       <div class="card-title">📋 Step 1 — Your Information</div>
       <div class="field">
@@ -89,8 +91,13 @@
         <label>Date of Birth *</label>
         <input type="date" id="inp-dob" onchange="checkReady()">
       </div>
+      <div class="field">
+        <label>Email Address *</label>
+        <input type="email" id="inp-email" placeholder="you@email.com" autocomplete="email" oninput="checkReady()">
+      </div>
     </div>
 
+    <!-- Step 2: Doc type -->
     <div class="card">
       <div class="card-title">📁 Step 2 — Document Type</div>
       <div class="doc-grid">
@@ -103,6 +110,7 @@
       </div>
     </div>
 
+    <!-- Step 3: Upload -->
     <div class="card">
       <div class="card-title">📎 Step 3 — Upload Your Documents</div>
       <div class="upload-zone" id="drop-zone">
@@ -125,17 +133,24 @@
     </button>
   </div>
 
+  <!-- Success -->
   <div class="success-screen" id="success-screen">
     <div class="success-icon">✅</div>
     <div class="success-title">Documents Sent!</div>
-    <div class="success-sub">Your documents have been received by Vietrust.<br>We will contact you shortly.</div>
+    <div class="success-sub">Your documents have been received by Vietrust.<br>We will contact you shortly at the email and phone number you provided.</div>
     <div class="success-card" id="success-summary"></div>
     <button class="new-btn" onclick="resetForm()">Submit Another Document</button>
   </div>
 </div>
 
 <script>
-const WEB3FORMS_KEY = '1d138a19-0f35-4d1d-9bb5-c06a169f1adc';
+// EmailJS credentials
+const EJS_PUBLIC_KEY  = '08jJwga1N7xMr3xYT';
+const EJS_SERVICE_ID  = 'service_jagl5t7';
+const EJS_TEMPLATE_ID = 'template_c8ygh6l';
+
+emailjs.init(EJS_PUBLIC_KEY);
+
 const files = [];
 let docType = '';
 
@@ -186,38 +201,43 @@ function renderFiles() {
     const prev = document.createElement('img');
     prev.className = 'preview-img'; grid.appendChild(prev);
     const r = new FileReader();
-    r.onload = e => { prev.src = e.target.result; const th = document.getElementById('th-' + item.id); if (th) th.src = e.target.result; };
+    r.onload = e => {
+      prev.src = e.target.result;
+      const th = document.getElementById('th-' + item.id);
+      if (th) th.src = e.target.result;
+    };
     r.readAsDataURL(item.file);
   });
 }
 
 function checkReady() {
-  const name = document.getElementById('inp-name').value.trim();
+  const name  = document.getElementById('inp-name').value.trim();
   const phone = document.getElementById('inp-phone').value.trim();
-  const dob = document.getElementById('inp-dob').value;
-  document.getElementById('send-btn').disabled = !(name && phone && dob && docType && files.length > 0);
+  const dob   = document.getElementById('inp-dob').value;
+  const email = document.getElementById('inp-email').value.trim();
+  document.getElementById('send-btn').disabled = !(name && phone && dob && email && docType && files.length > 0);
 }
 
-function toDataUrl(file) {
-  return new Promise(res => { const r = new FileReader(); r.onload = e => res(e.target.result); r.readAsDataURL(file); });
-}
-
-// Resize image to max 1200px to keep email size manageable
-function resizeImage(dataUrl, maxSize = 1200) {
+// Resize image and return base64 data URL
+function resizeImage(file, maxPx = 1000) {
   return new Promise(res => {
-    const img = new Image();
-    img.onload = () => {
-      let w = img.width, h = img.height;
-      if (Math.max(w, h) > maxSize) {
-        const scale = maxSize / Math.max(w, h);
-        w = Math.round(w * scale); h = Math.round(h * scale);
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      res(canvas.toDataURL('image/jpeg', 0.85));
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (Math.max(w, h) > maxPx) {
+          const scale = maxPx / Math.max(w, h);
+          w = Math.round(w * scale); h = Math.round(h * scale);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        res(canvas.toDataURL('image/jpeg', 0.80));
+      };
+      img.src = e.target.result;
     };
-    img.src = dataUrl;
+    reader.readAsDataURL(file);
   });
 }
 
@@ -225,6 +245,7 @@ async function submitForm() {
   const name  = document.getElementById('inp-name').value.trim();
   const phone = document.getElementById('inp-phone').value.trim();
   const dob   = document.getElementById('inp-dob').value;
+  const email = document.getElementById('inp-email').value.trim();
   const dobDisplay = new Date(dob + 'T00:00:00').toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
 
   document.getElementById('send-btn').disabled = true;
@@ -233,114 +254,46 @@ async function submitForm() {
   setProgress(10, 'Preparing documents...');
 
   try {
-    // Build HTML email body with images embedded inline
-    setProgress(30, 'Processing images...');
+    // Process each image — resize and convert to base64
+    const imageFiles = files.filter(f => f.file.type.startsWith('image/'));
+    const pdfFiles   = files.filter(f => f.file.type === 'application/pdf');
 
+    // Build images HTML — each image on its own line
     let imagesHtml = '';
-    let pdfList = '';
-
-    for (let i = 0; i < files.length; i++) {
-      const item = files[i];
-      setProgress(30 + Math.round((i / files.length) * 40), `Processing file ${i+1} of ${files.length}...`);
-
-      if (item.file.type.startsWith('image/')) {
-        const dataUrl = await toDataUrl(item.file);
-        const resized = await resizeImage(dataUrl, 1200);
-        imagesHtml += `
-          <div style="margin-bottom:20px;">
-            <p style="font-family:Arial,sans-serif;font-size:13px;color:#666;margin-bottom:8px;">
-              📷 <strong>${item.file.name}</strong> (${(item.file.size/1024).toFixed(0)} KB)
-            </p>
-            <img src="${resized}" style="max-width:100%;border-radius:8px;border:1px solid #ddd;" alt="${item.file.name}">
-          </div>`;
-      } else {
-        pdfList += `<li style="font-family:Arial,sans-serif;font-size:13px;color:#555;">${item.file.name} (${(item.file.size/1024).toFixed(0)} KB)</li>`;
-      }
+    for (let i = 0; i < imageFiles.length; i++) {
+      setProgress(20 + Math.round((i / Math.max(imageFiles.length, 1)) * 50), `Processing image ${i+1} of ${imageFiles.length}...`);
+      const dataUrl = await resizeImage(imageFiles[i].file, 1000);
+      imagesHtml += `
+        <div style="margin-bottom:24px;">
+          <p style="font-family:Arial,sans-serif;font-size:13px;color:#555;margin:0 0 8px;">
+            <strong>📷 Document ${i+1}:</strong> ${imageFiles[i].file.name}
+          </p>
+          <img src="${dataUrl}" 
+               style="width:100%;max-width:560px;display:block;border-radius:8px;border:1px solid #ddd;" 
+               alt="Document ${i+1}">
+        </div>`;
     }
 
-    const htmlBody = `
-<!DOCTYPE html>
-<html>
-<body style="background:#f5f5f5;padding:20px;margin:0;">
-  <div style="max-width:600px;margin:0 auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+    let pdfHtml = '';
+    if (pdfFiles.length > 0) {
+      pdfHtml = `<p style="font-family:Arial,sans-serif;font-size:13px;color:#555;margin:16px 0 0;">
+        📄 PDF files submitted (${pdfFiles.length}): ${pdfFiles.map(f=>f.file.name).join(', ')}
+      </p>`;
+    }
 
-    <div style="background:linear-gradient(135deg,#0d2818,#1a3a2a);padding:24px;text-align:center;">
-      <h1 style="color:#2ea043;font-family:Arial,sans-serif;font-size:24px;margin:0;">Vietrust Document Portal</h1>
-      <p style="color:#8b949e;font-family:Arial,sans-serif;font-size:13px;margin:6px 0 0;">New Document Submission</p>
-    </div>
+    setProgress(75, 'Sending email...');
 
-    <div style="padding:24px;">
-      <h2 style="font-family:Arial,sans-serif;font-size:16px;color:#333;border-bottom:2px solid #2ea043;padding-bottom:8px;margin-bottom:16px;">
-        👤 Client Information
-      </h2>
-      <table style="width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:14px;">
-        <tr style="background:#f9f9f9;">
-          <td style="padding:10px 12px;color:#666;font-weight:bold;width:40%;border-bottom:1px solid #eee;">Name</td>
-          <td style="padding:10px 12px;color:#333;border-bottom:1px solid #eee;">${name}</td>
-        </tr>
-        <tr>
-          <td style="padding:10px 12px;color:#666;font-weight:bold;border-bottom:1px solid #eee;">Phone</td>
-          <td style="padding:10px 12px;color:#333;border-bottom:1px solid #eee;">${phone}</td>
-        </tr>
-        <tr style="background:#f9f9f9;">
-          <td style="padding:10px 12px;color:#666;font-weight:bold;border-bottom:1px solid #eee;">Date of Birth</td>
-          <td style="padding:10px 12px;color:#333;border-bottom:1px solid #eee;">${dobDisplay}</td>
-        </tr>
-        <tr>
-          <td style="padding:10px 12px;color:#666;font-weight:bold;border-bottom:1px solid #eee;">Document Type</td>
-          <td style="padding:10px 12px;color:#333;border-bottom:1px solid #eee;">${docType}</td>
-        </tr>
-        <tr style="background:#f9f9f9;">
-          <td style="padding:10px 12px;color:#666;font-weight:bold;">Submitted</td>
-          <td style="padding:10px 12px;color:#333;">${new Date().toLocaleString()}</td>
-        </tr>
-      </table>
-
-      ${imagesHtml ? `
-      <h2 style="font-family:Arial,sans-serif;font-size:16px;color:#333;border-bottom:2px solid #2ea043;padding-bottom:8px;margin:24px 0 16px;">
-        📷 Submitted Documents (${files.filter(f=>f.file.type.startsWith('image/')).length} image${files.filter(f=>f.file.type.startsWith('image/')).length>1?'s':''})
-      </h2>
-      ${imagesHtml}` : ''}
-
-      ${pdfList ? `
-      <h2 style="font-family:Arial,sans-serif;font-size:16px;color:#333;border-bottom:2px solid #2ea043;padding-bottom:8px;margin:24px 0 16px;">
-        📄 PDF Files
-      </h2>
-      <ul style="padding-left:20px;">${pdfList}</ul>
-      <p style="font-family:Arial,sans-serif;font-size:12px;color:#999;margin-top:8px;">
-        Note: PDF files cannot be embedded in email. Please contact the client to resend as images if needed.
-      </p>` : ''}
-    </div>
-
-    <div style="background:#f9f9f9;padding:16px;text-align:center;border-top:1px solid #eee;">
-      <p style="font-family:Arial,sans-serif;font-size:12px;color:#999;margin:0;">
-        Sent via Vietrust Document Portal · ${new Date().toLocaleDateString()}
-      </p>
-    </div>
-  </div>
-</body>
-</html>`;
-
-    setProgress(75, 'Sending to Vietrust...');
-
-    const payload = {
-      access_key: WEB3FORMS_KEY,
-      subject: `📄 New Document from ${name} — ${docType}`,
-      from_name: 'Vietrust Document Portal',
-      name: name,
-      email: 'noreply@vietrust.com',
-      message: `New document submission from ${name} (${phone}, DOB: ${dobDisplay}). Document Type: ${docType}. Files: ${files.length}. Submitted: ${new Date().toLocaleString()}`,
-      html: htmlBody
-    };
-
-    const resp = await fetch('https://api.web3forms.com/submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify(payload)
+    // Send via EmailJS — images embedded in the message body as HTML
+    await emailjs.send(EJS_SERVICE_ID, EJS_TEMPLATE_ID, {
+      client_name:  name,
+      client_phone: phone,
+      client_dob:   dobDisplay,
+      client_email: email,
+      doc_type:     docType,
+      doc_count:    files.length.toString(),
+      submitted_at: new Date().toLocaleString(),
+      images_html:  imagesHtml + pdfHtml
     });
-
-    const result = await resp.json();
-    if (!result.success) throw new Error(result.message || 'Submission failed');
 
     setProgress(100, 'Sent!');
 
@@ -350,6 +303,7 @@ async function submitForm() {
       document.getElementById('success-summary').innerHTML = `
         <div class="success-row"><span>Name</span><span>${name}</span></div>
         <div class="success-row"><span>Phone</span><span>${phone}</span></div>
+        <div class="success-row"><span>Email</span><span>${email}</span></div>
         <div class="success-row"><span>Date of Birth</span><span>${dobDisplay}</span></div>
         <div class="success-row"><span>Document Type</span><span>${docType}</span></div>
         <div class="success-row"><span>Files Sent</span><span>${files.length} file${files.length>1?'s':''}</span></div>
@@ -357,7 +311,8 @@ async function submitForm() {
     }, 800);
 
   } catch(err) {
-    document.getElementById('err-box').textContent = '❌ ' + (err.message || 'Something went wrong. Please try again.');
+    console.error(err);
+    document.getElementById('err-box').textContent = '❌ Failed to send. Please check your connection and try again. (' + (err.text || err.message || JSON.stringify(err)) + ')';
     document.getElementById('err-box').style.display = 'block';
     document.getElementById('send-btn').disabled = false;
     document.getElementById('prog-wrap').style.display = 'none';
@@ -371,7 +326,7 @@ function setProgress(pct, label) {
 
 function resetForm() {
   files.length = 0; docType = '';
-  ['inp-name','inp-phone','inp-dob'].forEach(id => document.getElementById(id).value = '');
+  ['inp-name','inp-phone','inp-dob','inp-email'].forEach(id => document.getElementById(id).value = '');
   document.querySelectorAll('.doc-btn').forEach(b => b.classList.remove('sel'));
   document.getElementById('file-list').innerHTML = '';
   document.getElementById('preview-grid').innerHTML = '';
