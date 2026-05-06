@@ -28,6 +28,9 @@
   .field input { width: 100%; padding: 13px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 15px; outline: none; transition: border 0.2s; -webkit-appearance: none; }
   .field input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(46,160,67,0.12); }
   .field input::placeholder { color: #444; }
+  .field textarea { width: 100%; padding: 13px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 15px; outline: none; transition: border 0.2s; resize: vertical; min-height: 100px; font-family: inherit; }
+  .field textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(46,160,67,0.12); }
+  .field textarea::placeholder { color: #444; }
   .optional { font-size: 11px; color: var(--muted); font-weight: 400; margin-left: 4px; }
 
   .doc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -106,6 +109,10 @@
       <div class="field">
         <label>Email Address <span class="optional">(optional)</span></label>
         <input type="email" id="inp-email" placeholder="you@email.com" autocomplete="email">
+      </div>
+      <div class="field">
+        <label>Message to Vietrust <span class="optional">(optional)</span></label>
+        <textarea id="inp-message" placeholder="Explain any concerns, questions, or reasons for sending these documents..."></textarea>
       </div>
     </div>
 
@@ -259,7 +266,7 @@ async function submitForm() {
     setProgress(75, 'Sending to Vietrust...');
 
     const payload = {
-      name, phone, dob: dobDisplay, email, docType,
+      name, phone, dob: dobDisplay, email, message, docType,
       files: fileData
     };
 
@@ -300,7 +307,7 @@ function setProgress(pct, label) {
 
 function resetForm() {
   files.length = 0; docType = '';
-  ['inp-name','inp-phone','inp-dob','inp-email'].forEach(id => document.getElementById(id).value = '');
+  ['inp-name','inp-phone','inp-dob','inp-email','inp-message'].forEach(id => document.getElementById(id).value = '');
   document.querySelectorAll('.doc-btn').forEach(b => b.classList.remove('sel'));
   document.getElementById('file-list').innerHTML = '';
   document.getElementById('preview-grid').innerHTML = '';
