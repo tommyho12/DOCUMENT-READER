@@ -35,23 +35,26 @@
   .doc-btn .icon { font-size: 24px; }
   .doc-btn.sel { border-color: var(--green); color: var(--green); background: var(--green-lt); }
 
-  .upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 32px 20px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--bg); position: relative; }
+  .upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 32px 20px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--bg); position: relative; overflow: hidden; }
   .upload-zone.over { border-color: var(--green); background: var(--green-lt); }
-  .upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; font-size: 0; }
   .upload-icon { font-size: 40px; margin-bottom: 10px; }
   .upload-zone h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
   .upload-zone p { font-size: 12px; color: var(--muted); }
 
   .file-list { margin-top: 12px; }
   .file-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; }
-  .file-thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); flex-shrink: 0; background: var(--border); }
+  .file-thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); flex-shrink: 0; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 20px; }
   .file-info { flex: 1; min-width: 0; }
   .file-name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .file-size { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .file-rm { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; padding: 0 4px; flex-shrink: 0; line-height: 1; }
+  .file-rm { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; padding: 0 4px; flex-shrink: 0; }
   .file-rm:hover { color: #f85149; }
 
-  .send-btn { width: 100%; padding: 16px; border: none; border-radius: 10px; background: var(--green); color: white; font-size: 17px; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: 8px; letter-spacing: -0.2px; }
+  .preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+  .preview-img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); }
+
+  .send-btn { width: 100%; padding: 16px; border: none; border-radius: 10px; background: var(--green); color: white; font-size: 17px; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: 8px; }
   .send-btn:hover { background: var(--green-dk); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(46,160,67,0.4); }
   .send-btn:disabled { background: var(--border); color: var(--muted); transform: none; box-shadow: none; cursor: not-allowed; }
 
@@ -60,7 +63,6 @@
   .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
   .progress-fill { height: 100%; background: linear-gradient(90deg, var(--green-dk), var(--green)); border-radius: 3px; transition: width 0.4s ease; width: 0%; }
 
-  /* Success screen */
   .success-screen { display: none; text-align: center; padding: 48px 20px; }
   .success-icon { font-size: 72px; margin-bottom: 16px; }
   .success-title { font-size: 26px; font-weight: 800; color: var(--green); margin-bottom: 8px; }
@@ -69,16 +71,11 @@
   .success-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
   .success-row:last-child { border-bottom: none; }
   .success-row span:first-child { color: var(--muted); }
-  .success-row span:last-child { font-weight: 600; color: var(--text); }
-  .new-btn { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .success-row span:last-child { font-weight: 600; }
+  .new-btn { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font-size: 15px; font-weight: 600; cursor: pointer; }
   .new-btn:hover { background: var(--border); }
 
-  .err-box { background: #2d1117; border: 1px solid #f85149; border-radius: 10px; padding: 14px 16px; font-size: 13px; color: #f85149; margin-top: 12px; display: none; }
-
-  .preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
-  .preview-img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); }
-
-  .count-badge { display: inline-block; background: var(--green-lt); color: var(--green); border: 1px solid var(--green-dk); padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-top: 8px; }
+  .err-box { background: #2d1117; border: 1px solid #f85149; border-radius: 10px; padding: 14px 16px; font-size: 13px; color: #f85149; margin-top: 12px; display: none; line-height: 1.6; }
 </style>
 </head>
 <body>
@@ -90,10 +87,9 @@
 
 <div class="container">
 
-  <!-- Form -->
   <div id="main-form">
 
-    <!-- Step 1: Info -->
+    <!-- Step 1 -->
     <div class="card">
       <div class="card-title">📋 Step 1 — Your Information</div>
       <div class="field">
@@ -110,7 +106,7 @@
       </div>
     </div>
 
-    <!-- Step 2: Doc type -->
+    <!-- Step 2 -->
     <div class="card">
       <div class="card-title">📁 Step 2 — Document Type</div>
       <div class="doc-grid">
@@ -123,36 +119,33 @@
       </div>
     </div>
 
-    <!-- Step 3: Upload -->
+    <!-- Step 3 -->
     <div class="card">
-      <div class="card-title">📎 Step 3 — Upload Photos / Files</div>
+      <div class="card-title">📎 Step 3 — Upload Your Documents</div>
       <div class="upload-zone" id="drop-zone">
-        <input type="file" id="file-input" multiple accept="image/*,.pdf" capture="environment">
+        <input type="file" id="file-input" multiple accept="image/*,.pdf">
         <div class="upload-icon">📷</div>
-        <h3>Tap to upload or take photo</h3>
-        <p>Select from camera roll, take a photo, or choose a PDF</p>
+        <h3>Tap to choose photos or files</h3>
+        <p>Camera roll, take a photo, or PDF — all supported</p>
       </div>
-      <div id="file-list"></div>
-      <div id="preview-grid" class="preview-grid"></div>
+      <div class="file-list" id="file-list"></div>
+      <div class="preview-grid" id="preview-grid"></div>
     </div>
 
-    <!-- Error -->
-    <div class="err-box" id="err-box">❌ Something went wrong. Please try again.</div>
+    <div class="err-box" id="err-box"></div>
 
-    <!-- Progress -->
     <div class="progress-wrap" id="prog-wrap">
       <div class="progress-label" id="prog-label">Sending...</div>
       <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
     </div>
 
-    <!-- Send button -->
     <button class="send-btn" id="send-btn" disabled onclick="submitForm()">
       📤 Send Documents to Vietrust
     </button>
 
   </div>
 
-  <!-- Success screen -->
+  <!-- Success -->
   <div class="success-screen" id="success-screen">
     <div class="success-icon">✅</div>
     <div class="success-title">Documents Sent!</div>
@@ -164,11 +157,10 @@
 </div>
 
 <script>
-const FORMSPREE = 'https://formspree.io/f/mqenborb';
+const WEB3FORMS_KEY = '1d138a19-0f35-4d1d-9bb5-c06a169f1adc';
 const files = [];
 let docType = '';
 
-// ── Doc type ──────────────────────────────────────────
 function selDoc(el, type) {
   document.querySelectorAll('.doc-btn').forEach(b => b.classList.remove('sel'));
   el.classList.add('sel');
@@ -176,7 +168,6 @@ function selDoc(el, type) {
   checkReady();
 }
 
-// ── File upload ───────────────────────────────────────
 const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
 
@@ -204,12 +195,13 @@ function removeFile(id) {
 function renderFiles() {
   const list = document.getElementById('file-list');
   const grid = document.getElementById('preview-grid');
-
   if (!files.length) { list.innerHTML = ''; grid.innerHTML = ''; return; }
 
   list.innerHTML = files.map(item => `
     <div class="file-item">
-      <img class="file-thumb" id="th-${item.id}">
+      ${item.file.type.startsWith('image/') 
+        ? `<img class="file-thumb" id="th-${item.id}" src="">`
+        : `<div class="file-thumb">📄</div>`}
       <div class="file-info">
         <div class="file-name">${item.file.name}</div>
         <div class="file-size">${(item.file.size/1024).toFixed(0)} KB · ${item.file.type.includes('pdf') ? 'PDF' : 'Image'}</div>
@@ -221,24 +213,35 @@ function renderFiles() {
   grid.innerHTML = '';
   files.forEach(item => {
     if (!item.file.type.startsWith('image/')) return;
-    const img = document.getElementById('th-' + item.id);
     const prev = document.createElement('img');
     prev.className = 'preview-img';
     grid.appendChild(prev);
     const r = new FileReader();
-    r.onload = e => { if (img) img.src = e.target.result; prev.src = e.target.result; };
+    r.onload = e => {
+      prev.src = e.target.result;
+      const th = document.getElementById('th-' + item.id);
+      if (th) th.src = e.target.result;
+    };
     r.readAsDataURL(item.file);
   });
 }
 
 function checkReady() {
-  const name = document.getElementById('inp-name').value.trim();
+  const name  = document.getElementById('inp-name').value.trim();
   const phone = document.getElementById('inp-phone').value.trim();
-  const dob = document.getElementById('inp-dob').value;
+  const dob   = document.getElementById('inp-dob').value;
   document.getElementById('send-btn').disabled = !(name && phone && dob && docType && files.length > 0);
 }
 
-// ── Submit via Formspree ──────────────────────────────
+// Convert file to base64
+function toBase64(file) {
+  return new Promise(res => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result.split(',')[1]);
+    r.readAsDataURL(file);
+  });
+}
+
 async function submitForm() {
   const name  = document.getElementById('inp-name').value.trim();
   const phone = document.getElementById('inp-phone').value.trim();
@@ -248,35 +251,54 @@ async function submitForm() {
   document.getElementById('send-btn').disabled = true;
   document.getElementById('err-box').style.display = 'none';
   document.getElementById('prog-wrap').style.display = 'block';
-  setProgress(10, 'Preparing your documents...');
+  setProgress(10, 'Preparing documents...');
 
   try {
-    const formData = new FormData();
+    // Convert all files to base64
+    setProgress(30, 'Processing files...');
+    const attachments = [];
+    for (const item of files) {
+      const b64 = await toBase64(item.file);
+      attachments.push({
+        name: item.file.name,
+        type: item.file.type || 'application/octet-stream',
+        data: b64
+      });
+    }
 
-    // Client info fields
-    formData.append('Client Name', name);
-    formData.append('Phone Number', phone);
-    formData.append('Date of Birth', dobDisplay);
-    formData.append('Document Type', docType);
-    formData.append('Submitted At', new Date().toLocaleString());
-    formData.append('Number of Files', files.length.toString());
+    setProgress(60, 'Sending to Vietrust...');
 
-    // Attach every file
-    setProgress(40, 'Attaching files...');
-    files.forEach((item, i) => {
-      formData.append(`document_${i+1}`, item.file, item.file.name);
-    });
+    const payload = {
+      access_key: WEB3FORMS_KEY,
+      subject: `New Document from ${name} — ${docType}`,
+      from_name: 'Vietrust Document Portal',
+      name: name,
+      email: 'noreply@vietrust.com',
+      message: `
+NEW DOCUMENT SUBMISSION — VIETRUST PORTAL
 
-    setProgress(70, 'Sending to Vietrust...');
-    const resp = await fetch(FORMSPREE, {
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CLIENT INFORMATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Name:           ${name}
+Phone:          ${phone}
+Date of Birth:  ${dobDisplay}
+Document Type:  ${docType}
+Files:          ${files.length} file(s)
+Submitted:      ${new Date().toLocaleString()}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      `.trim(),
+      attachments: attachments
+    };
+
+    const resp = await fetch('https://api.web3forms.com/submit', {
       method: 'POST',
-      body: formData,
-      headers: { 'Accept': 'application/json' }
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(payload)
     });
 
     const result = await resp.json();
-
-    if (!resp.ok) throw new Error(result.error || 'Submission failed');
+    if (!result.success) throw new Error(result.message || 'Submission failed');
 
     setProgress(100, 'Sent!');
 
@@ -288,7 +310,7 @@ async function submitForm() {
         <div class="success-row"><span>Phone</span><span>${phone}</span></div>
         <div class="success-row"><span>Date of Birth</span><span>${dobDisplay}</span></div>
         <div class="success-row"><span>Document Type</span><span>${docType}</span></div>
-        <div class="success-row"><span>Files Sent</span><span>${files.length} file${files.length>1?'s':''}</span></div>
+        <div class="success-row"><span>Files Sent</span><span>${files.length} file${files.length > 1 ? 's' : ''}</span></div>
       `;
     }, 800);
 
