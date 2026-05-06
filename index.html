@@ -284,7 +284,8 @@ async function submitForm() {
   const name  = document.getElementById('inp-name').value.trim();
   const phone = document.getElementById('inp-phone').value.trim();
   const dob   = document.getElementById('inp-dob').value;
-  const email = document.getElementById('inp-email').value.trim() || 'Not provided';
+  const email   = document.getElementById('inp-email').value.trim() || 'Not provided';
+  const message  = document.getElementById('inp-message') ? (document.getElementById('inp-message').value.trim() || 'None') : 'None';
   const dobDisplay = new Date(dob + 'T00:00:00').toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
 
   document.getElementById('send-btn').disabled = true;
