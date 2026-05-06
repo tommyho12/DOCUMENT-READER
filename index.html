@@ -3,108 +3,410 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Vietrust — Document Upload</title>
+<title>Vietrust — Document Upload Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  :root {
-    --green: #2ea043; --green-dk: #238636; --green-lt: #0d2818;
-    --bg: #0d1117; --surface: #161b22; --border: #21262d;
-    --text: #e6edf3; --muted: #8b949e; --radius: 12px;
-  }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 60px; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-  .header { background: linear-gradient(135deg, #0d2818, #1a3a2a); border-bottom: 1px solid var(--green-dk); padding: 20px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 20px rgba(46,160,67,0.2); }
-  .logo { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
-  .logo span { color: var(--green); }
-  .tagline { font-size: 12px; color: var(--muted); margin-top: 3px; }
+:root {
+  --navy:      #0B1F3A;
+  --navy-lt:   #132848;
+  --navy-md:   #1A3560;
+  --gold:      #C9A84C;
+  --gold-lt:   #E8C96A;
+  --gold-dk:   #A07830;
+  --gold-bg:   #FBF6EC;
+  --white:     #FFFFFF;
+  --off-white: #F7F5F0;
+  --gray-100:  #EEECE8;
+  --gray-200:  #D8D4CC;
+  --gray-400:  #9A9490;
+  --gray-700:  #4A4540;
+  --text:      #1A1612;
+  --radius:    14px;
+  --radius-sm: 8px;
+  --shadow:    0 4px 24px rgba(11,31,58,0.10);
+  --shadow-lg: 0 12px 48px rgba(11,31,58,0.16);
+}
 
-  .container { max-width: 480px; margin: 0 auto; padding: 24px 16px; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
-  .card-title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 14px; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--off-white);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
 
-  .field { margin-bottom: 14px; }
-  .field:last-child { margin-bottom: 0; }
-  .field label { display: block; font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 6px; }
-  .field input { width: 100%; padding: 13px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 15px; outline: none; transition: border 0.2s; -webkit-appearance: none; }
-  .field input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(46,160,67,0.12); }
-  .field input::placeholder { color: #444; }
-  .field textarea { width: 100%; padding: 13px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 15px; outline: none; transition: border 0.2s; resize: vertical; min-height: 100px; font-family: inherit; }
-  .field textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(46,160,67,0.12); }
-  .field textarea::placeholder { color: #444; }
-  .optional { font-size: 11px; color: var(--muted); font-weight: 400; margin-left: 4px; }
+/* ── HEADER ── */
+.header {
+  background: var(--navy);
+  padding: 0 20px;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 20px rgba(11,31,58,0.3);
+}
+.header-inner {
+  max-width: 480px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 64px;
+}
+.logo-wrap { display: flex; align-items: center; gap: 10px; }
+.logo-icon {
+  width: 38px; height: 38px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-lt));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 800; color: var(--navy);
+  font-family: 'Playfair Display', serif; letter-spacing: -0.5px;
+  box-shadow: 0 2px 8px rgba(201,168,76,0.4);
+}
+.logo-text { line-height: 1; }
+.logo-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px; color: var(--white); letter-spacing: -0.3px;
+}
+.logo-name span { color: var(--gold); }
+.logo-sub { font-size: 10px; color: rgba(255,255,255,0.5); letter-spacing: 0.05em; margin-top: 1px; }
+.header-phone {
+  font-size: 12px; color: var(--gold);
+  font-weight: 600; letter-spacing: 0.02em;
+  display: flex; align-items: center; gap: 5px;
+}
 
-  .doc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .doc-btn { padding: 14px 8px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px; color: var(--muted); font-size: 12px; font-weight: 500; text-align: center; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-  .doc-btn .icon { font-size: 24px; }
-  .doc-btn.sel { border-color: var(--green); color: var(--green); background: var(--green-lt); }
+/* ── HERO BANNER ── */
+.hero {
+  background: linear-gradient(160deg, var(--navy) 0%, var(--navy-md) 100%);
+  padding: 32px 20px 28px;
+  text-align: center; position: relative; overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C9A84C' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(201,168,76,0.15); border: 1px solid rgba(201,168,76,0.3);
+  color: var(--gold-lt); font-size: 11px; font-weight: 600;
+  padding: 5px 12px; border-radius: 20px; margin-bottom: 14px;
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px; color: var(--white);
+  line-height: 1.25; margin-bottom: 8px; letter-spacing: -0.3px;
+}
+.hero h1 span { color: var(--gold); }
+.hero p { font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.6; }
 
-  .upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 32px 20px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--bg); position: relative; overflow: hidden; }
-  .upload-zone.over { border-color: var(--green); background: var(--green-lt); }
-  .upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; font-size: 0; }
-  .upload-icon { font-size: 40px; margin-bottom: 10px; }
-  .upload-zone h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
-  .upload-zone p { font-size: 12px; color: var(--muted); }
+/* ── SERVICES STRIP ── */
+.services-strip {
+  background: var(--gold);
+  padding: 10px 20px;
+  overflow-x: auto; white-space: nowrap;
+  scrollbar-width: none;
+}
+.services-strip::-webkit-scrollbar { display: none; }
+.services-inner { display: inline-flex; gap: 6px; align-items: center; }
+.svc-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(11,31,58,0.15); color: var(--navy);
+  font-size: 11px; font-weight: 700; padding: 4px 10px;
+  border-radius: 20px; white-space: nowrap; letter-spacing: 0.02em;
+}
 
-  .file-list { margin-top: 12px; }
-  .file-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; }
-  .file-thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); flex-shrink: 0; }
-  .file-thumb-pdf { width: 48px; height: 48px; border-radius: 6px; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
-  .file-info { flex: 1; min-width: 0; }
-  .file-name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .file-size { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .file-rm { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; padding: 0 4px; flex-shrink: 0; }
-  .file-rm:hover { color: #f85149; }
+/* ── CONTAINER ── */
+.container { max-width: 480px; margin: 0 auto; padding: 24px 16px; }
 
-  .preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
-  .preview-img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); }
+/* ── STEP INDICATOR ── */
+.steps-wrap { display: flex; align-items: center; margin-bottom: 24px; }
+.step-item { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+.step-num {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+  background: var(--gray-100); color: var(--gray-400);
+  transition: all 0.3s;
+}
+.step-item.active .step-num { background: var(--navy); color: var(--white); box-shadow: 0 2px 8px rgba(11,31,58,0.3); }
+.step-item.done .step-num { background: var(--gold); color: var(--navy); }
+.step-lbl { font-size: 10px; color: var(--gray-400); font-weight: 500; }
+.step-item.active .step-lbl { color: var(--navy); font-weight: 600; }
+.step-line { flex: 0.5; height: 2px; background: var(--gray-200); margin-bottom: 14px; transition: background 0.3s; }
+.step-line.done { background: var(--gold); }
 
-  .send-btn { width: 100%; padding: 16px; border: none; border-radius: 10px; background: var(--green); color: white; font-size: 17px; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: 8px; }
-  .send-btn:hover { background: var(--green-dk); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(46,160,67,0.4); }
-  .send-btn:disabled { background: var(--border); color: var(--muted); transform: none; box-shadow: none; cursor: not-allowed; }
+/* ── CARDS ── */
+.card {
+  background: var(--white); border: 1px solid var(--gray-100);
+  border-radius: var(--radius); padding: 22px;
+  margin-bottom: 16px; box-shadow: var(--shadow);
+  transition: box-shadow 0.2s;
+}
+.card-title {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 18px;
+}
+.card-title-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--gold-bg); display: flex; align-items: center;
+  justify-content: center; font-size: 16px; flex-shrink: 0;
+  border: 1px solid rgba(201,168,76,0.25);
+}
+.card-title-text { font-size: 14px; font-weight: 700; color: var(--navy); }
+.card-title-step { font-size: 11px; color: var(--gray-400); margin-top: 1px; font-weight: 400; }
 
-  .progress-wrap { margin: 12px 0; display: none; }
-  .progress-label { font-size: 13px; color: var(--muted); margin-bottom: 8px; text-align: center; }
-  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
-  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--green-dk), var(--green)); border-radius: 3px; transition: width 0.4s ease; width: 0%; }
+/* ── FIELDS ── */
+.field { margin-bottom: 14px; }
+.field:last-child { margin-bottom: 0; }
+.field label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; color: var(--gray-700);
+  margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.optional { font-size: 10px; color: var(--gray-400); font-weight: 400; text-transform: none; letter-spacing: 0; }
+.field input, .field textarea {
+  width: 100%; padding: 13px 14px;
+  background: var(--off-white); border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-sm); color: var(--text); font-size: 15px;
+  outline: none; transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+  -webkit-appearance: none;
+}
+.field input:focus, .field textarea:focus {
+  border-color: var(--navy); background: var(--white);
+  box-shadow: 0 0 0 3px rgba(11,31,58,0.08);
+}
+.field input::placeholder, .field textarea::placeholder { color: var(--gray-400); }
+.field textarea { resize: vertical; min-height: 90px; }
 
-  .success-screen { display: none; text-align: center; padding: 48px 20px; }
-  .success-icon { font-size: 72px; margin-bottom: 16px; }
-  .success-title { font-size: 26px; font-weight: 800; color: var(--green); margin-bottom: 8px; }
-  .success-sub { font-size: 14px; color: var(--muted); line-height: 1.8; margin-bottom: 28px; }
-  .success-card { background: var(--surface); border: 1px solid var(--green-dk); border-radius: var(--radius); padding: 16px; margin-bottom: 24px; text-align: left; }
-  .success-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
-  .success-row:last-child { border-bottom: none; }
-  .success-row span:first-child { color: var(--muted); }
-  .success-row span:last-child { font-weight: 600; }
-  .new-btn { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font-size: 15px; font-weight: 600; cursor: pointer; }
+/* ── DOC TYPE GRID ── */
+.doc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.doc-btn {
+  padding: 14px 8px; background: var(--off-white);
+  border: 1.5px solid var(--gray-200); border-radius: 10px;
+  color: var(--gray-700); font-size: 12px; font-weight: 600;
+  text-align: center; cursor: pointer; transition: all 0.2s;
+  display: flex; flex-direction: column; align-items: center; gap: 7px;
+  font-family: 'DM Sans', sans-serif;
+}
+.doc-btn .icon { font-size: 24px; }
+.doc-btn:hover { border-color: var(--navy); color: var(--navy); background: var(--white); }
+.doc-btn.sel {
+  border-color: var(--gold); color: var(--navy);
+  background: var(--gold-bg);
+  box-shadow: 0 2px 12px rgba(201,168,76,0.2);
+}
+.doc-btn.sel .icon { filter: none; }
 
-  .err-box { background: #2d1117; border: 1px solid #f85149; border-radius: 10px; padding: 14px 16px; font-size: 13px; color: #f85149; margin-top: 12px; display: none; line-height: 1.6; }
+/* ── UPLOAD ── */
+.upload-zone {
+  border: 2px dashed var(--gray-200); border-radius: var(--radius);
+  padding: 32px 20px; text-align: center; cursor: pointer;
+  transition: all 0.2s; background: var(--off-white); position: relative; overflow: hidden;
+}
+.upload-zone:hover, .upload-zone.over {
+  border-color: var(--gold); background: var(--gold-bg);
+}
+.upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; font-size: 0; }
+.upload-icon { font-size: 40px; margin-bottom: 10px; }
+.upload-zone h3 { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+.upload-zone p { font-size: 12px; color: var(--gray-400); }
+
+/* ── FILE LIST ── */
+.file-list { margin-top: 12px; }
+.file-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; background: var(--white);
+  border: 1px solid var(--gray-100); border-radius: var(--radius-sm); margin-bottom: 6px;
+  box-shadow: 0 1px 4px rgba(11,31,58,0.06);
+}
+.file-thumb { width: 44px; height: 44px; object-fit: cover; border-radius: 6px; border: 1px solid var(--gray-100); flex-shrink: 0; }
+.file-thumb-pdf { width: 44px; height: 44px; border-radius: 6px; background: var(--gold-bg); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; border: 1px solid rgba(201,168,76,0.2); }
+.file-info { flex: 1; min-width: 0; }
+.file-name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--navy); }
+.file-size { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+.file-rm { background: none; border: none; color: var(--gray-400); font-size: 20px; cursor: pointer; padding: 0 4px; flex-shrink: 0; transition: color 0.15s; }
+.file-rm:hover { color: #c0392b; }
+
+.preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+.preview-img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; border: 1px solid var(--gray-100); }
+
+/* ── SEND BUTTON ── */
+.send-btn {
+  width: 100%; padding: 17px;
+  background: linear-gradient(135deg, var(--navy), var(--navy-md));
+  color: var(--white); border: none; border-radius: var(--radius);
+  font-size: 16px; font-weight: 700; cursor: pointer;
+  transition: all 0.2s; margin-top: 8px;
+  font-family: 'DM Sans', sans-serif; letter-spacing: 0.01em;
+  box-shadow: 0 4px 16px rgba(11,31,58,0.25);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.send-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(11,31,58,0.35); }
+.send-btn:disabled {
+  background: var(--gray-200); color: var(--gray-400);
+  transform: none; box-shadow: none; cursor: not-allowed;
+}
+.send-btn .btn-icon { font-size: 18px; }
+
+/* ── PROGRESS ── */
+.progress-wrap { margin: 12px 0; display: none; }
+.progress-label { font-size: 13px; color: var(--gray-400); margin-bottom: 8px; text-align: center; }
+.progress-bar { height: 5px; background: var(--gray-100); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--navy), var(--gold)); border-radius: 3px; transition: width 0.4s ease; width: 0%; }
+
+/* ── SUCCESS ── */
+.success-screen { display: none; text-align: center; padding: 48px 20px; }
+.success-icon { font-size: 72px; margin-bottom: 16px; animation: popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275); }
+@keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.success-title { font-family: 'Playfair Display', serif; font-size: 28px; color: var(--navy); margin-bottom: 8px; }
+.success-title span { color: var(--gold-dk); }
+.success-sub { font-size: 14px; color: var(--gray-400); line-height: 1.8; margin-bottom: 28px; }
+.success-card {
+  background: var(--white); border: 1px solid var(--gray-100);
+  border-radius: var(--radius); padding: 18px; margin-bottom: 24px;
+  text-align: left; box-shadow: var(--shadow);
+}
+.success-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 9px 0; border-bottom: 1px solid var(--gray-100); font-size: 13px;
+}
+.success-row:last-child { border-bottom: none; }
+.success-row span:first-child { color: var(--gray-400); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.success-row span:last-child { font-weight: 600; color: var(--navy); }
+.new-btn {
+  width: 100%; padding: 14px; border: 1.5px solid var(--navy);
+  border-radius: var(--radius); background: var(--white); color: var(--navy);
+  font-size: 15px; font-weight: 600; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; transition: all 0.2s;
+}
+.new-btn:hover { background: var(--navy); color: var(--white); }
+
+/* ── ERROR ── */
+.err-box {
+  background: #FEF2F2; border: 1px solid #FECACA;
+  border-radius: var(--radius-sm); padding: 14px 16px;
+  font-size: 13px; color: #B91C1C; margin-top: 12px;
+  display: none; line-height: 1.6;
+}
+
+/* ── FOOTER ── */
+.footer {
+  background: var(--navy); padding: 24px 20px;
+  text-align: center; margin-top: 32px;
+}
+.footer-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; color: var(--white); margin-bottom: 6px;
+}
+.footer-logo span { color: var(--gold); }
+.footer-info { font-size: 12px; color: rgba(255,255,255,0.45); line-height: 2; }
+.footer-info a { color: var(--gold); text-decoration: none; }
+
+/* ── TRUST BADGES ── */
+.trust-row {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 16px; justify-content: center;
+}
+.trust-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--white); border: 1px solid var(--gray-100);
+  border-radius: 20px; padding: 6px 12px;
+  font-size: 11px; font-weight: 600; color: var(--gray-700);
+  box-shadow: 0 1px 4px rgba(11,31,58,0.06);
+}
+
+/* ── DIVIDER ── */
+.gold-divider { height: 3px; background: linear-gradient(90deg, var(--gold-dk), var(--gold), var(--gold-lt), var(--gold)); border-radius: 2px; margin-bottom: 24px; }
 </style>
 </head>
 <body>
 
+<!-- HEADER -->
 <div class="header">
-  <div class="logo">Vie<span>trust</span></div>
-  <div class="tagline">Secure Document Upload Portal</div>
+  <div class="header-inner">
+    <div class="logo-wrap">
+      <div class="logo-icon">V</div>
+      <div class="logo-text">
+        <div class="logo-name">Vie<span>trust</span></div>
+        <div class="logo-sub">INSURANCE & FINANCIAL</div>
+      </div>
+    </div>
+    <a class="header-phone" href="tel:4079012586">
+      📞 (407) 901-2586
+    </a>
+  </div>
+</div>
+
+<!-- SERVICES STRIP -->
+<div class="services-strip">
+  <div class="services-inner">
+    <span class="svc-tag">🏥 Obamacare</span>
+    <span class="svc-tag">💊 Medicare</span>
+    <span class="svc-tag">🛡️ Life Insurance</span>
+    <span class="svc-tag">📊 IUL</span>
+    <span class="svc-tag">📋 Tax & Payroll</span>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">🔒 Secure Document Portal</div>
+  <h1>Upload Your<br><span>Documents</span> Safely</h1>
+  <p>Send your insurance, tax, or financial documents<br>directly to the Vietrust team — fast and secure.</p>
 </div>
 
 <div class="container">
+
   <div id="main-form">
+
+    <!-- Trust badges -->
+    <div style="margin-bottom:20px;margin-top:4px;">
+      <div class="trust-row">
+        <span class="trust-badge">🔐 Secure Upload</span>
+        <span class="trust-badge">📧 Delivered Instantly</span>
+        <span class="trust-badge">✅ No Account Needed</span>
+      </div>
+    </div>
+
+    <div class="gold-divider"></div>
+
+    <!-- Step indicator -->
+    <div class="steps-wrap">
+      <div class="step-item active" id="si1">
+        <div class="step-num">1</div>
+        <div class="step-lbl">Your Info</div>
+      </div>
+      <div class="step-line" id="sl1"></div>
+      <div class="step-item" id="si2" style="opacity:0.5">
+        <div class="step-num">2</div>
+        <div class="step-lbl">Doc Type</div>
+      </div>
+      <div class="step-line" id="sl2"></div>
+      <div class="step-item" id="si3" style="opacity:0.5">
+        <div class="step-num">3</div>
+        <div class="step-lbl">Upload</div>
+      </div>
+    </div>
 
     <!-- Step 1: Info -->
     <div class="card">
-      <div class="card-title">Step 1 — Your Information</div>
+      <div class="card-title">
+        <div class="card-title-icon">👤</div>
+        <div>
+          <div class="card-title-text">Your Information</div>
+          <div class="card-title-step">Step 1 of 3</div>
+        </div>
+      </div>
       <div class="field">
         <label>Full Name *</label>
-        <input type="text" id="inp-name" placeholder="First Last" autocomplete="name" oninput="checkReady()">
+        <input type="text" id="inp-name" placeholder="First Last" autocomplete="name" oninput="updateSteps(); checkReady()">
       </div>
       <div class="field">
         <label>Phone Number *</label>
-        <input type="tel" id="inp-phone" placeholder="(555)-555-5555" autocomplete="tel" oninput="formatPhone(this); checkReady()" maxlength="14">
+        <input type="tel" id="inp-phone" placeholder="(555)-555-5555" autocomplete="tel" oninput="formatPhone(this); updateSteps(); checkReady()" maxlength="14">
       </div>
       <div class="field">
         <label>Date of Birth *</label>
-        <input type="date" id="inp-dob" onchange="checkReady()">
+        <input type="date" id="inp-dob" onchange="updateSteps(); checkReady()">
       </div>
       <div class="field">
         <label>Email Address <span class="optional">(optional)</span></label>
@@ -112,13 +414,19 @@
       </div>
       <div class="field">
         <label>Message to Vietrust <span class="optional">(optional)</span></label>
-        <textarea id="inp-message" placeholder="Explain any concerns, questions, or reasons for sending these documents..."></textarea>
+        <textarea id="inp-message" placeholder="Explain any concerns, questions, or reason for sending these documents..."></textarea>
       </div>
     </div>
 
     <!-- Step 2: Doc type -->
     <div class="card">
-      <div class="card-title">Step 2 — Document Type</div>
+      <div class="card-title">
+        <div class="card-title-icon">📁</div>
+        <div>
+          <div class="card-title-text">Document Type</div>
+          <div class="card-title-step">Step 2 of 3</div>
+        </div>
+      </div>
       <div class="doc-grid">
         <div class="doc-btn" onclick="selDoc(this,'Insurance Card')"><span class="icon">🏥</span>Insurance Card</div>
         <div class="doc-btn" onclick="selDoc(this,'ID / License')"><span class="icon">🪪</span>ID / License</div>
@@ -131,12 +439,18 @@
 
     <!-- Step 3: Upload -->
     <div class="card">
-      <div class="card-title">Step 3 — Upload Your Documents</div>
+      <div class="card-title">
+        <div class="card-title-icon">📎</div>
+        <div>
+          <div class="card-title-text">Upload Documents</div>
+          <div class="card-title-step">Step 3 of 3 — Unlimited files accepted</div>
+        </div>
+      </div>
       <div class="upload-zone" id="drop-zone">
         <input type="file" id="file-input" multiple accept="image/*,.pdf">
         <div class="upload-icon">📷</div>
         <h3>Tap to choose photos or files</h3>
-        <p>Camera roll, take a photo, or PDF — unlimited files</p>
+        <p>Camera roll · Take a photo · PDF · No size limit</p>
       </div>
       <div class="file-list" id="file-list"></div>
       <div class="preview-grid" id="preview-grid"></div>
@@ -144,21 +458,45 @@
 
     <div class="err-box" id="err-box"></div>
     <div class="progress-wrap" id="prog-wrap">
-      <div class="progress-label" id="prog-label">Sending...</div>
+      <div class="progress-label" id="prog-label">Preparing your documents...</div>
       <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
     </div>
+
     <button class="send-btn" id="send-btn" disabled onclick="submitForm()">
-      Send Documents to Vietrust
+      <span class="btn-icon">📤</span> Send Documents to Vietrust
     </button>
+
+    <!-- Footer info -->
+    <div style="text-align:center;margin-top:20px;font-size:12px;color:var(--gray-400);line-height:1.9;">
+      <strong style="color:var(--navy);">Vietrust Insurance & Financial</strong><br>
+      1814 Woodward St, Orlando, FL 32803<br>
+      <a href="tel:4079012586" style="color:var(--gold-dk);text-decoration:none;">(407) 901-2586</a> &nbsp;·&nbsp;
+      <a href="mailto:info@vietrustcompany.com" style="color:var(--gold-dk);text-decoration:none;">info@vietrustcompany.com</a><br>
+      Mon–Fri 9am–5pm · Sat–Sun By Appointment
+    </div>
   </div>
 
-  <!-- Success -->
+  <!-- SUCCESS -->
   <div class="success-screen" id="success-screen">
     <div class="success-icon">✅</div>
-    <div class="success-title">Documents Sent!</div>
-    <div class="success-sub">Your documents have been received by Vietrust.<br>We will contact you shortly.</div>
+    <div class="success-title">Documents <span>Received!</span></div>
+    <div class="success-sub">
+      Your documents have been securely sent to the Vietrust team.<br>
+      We will review them and contact you shortly.
+    </div>
     <div class="success-card" id="success-summary"></div>
     <button class="new-btn" onclick="resetForm()">Submit Another Document</button>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-logo">Vie<span>trust</span></div>
+  <div class="footer-info">
+    Insurance & Financial Services<br>
+    1814 Woodward St, Orlando, FL 32803<br>
+    <a href="tel:4079012586">(407) 901-2586</a> · <a href="mailto:info@vietrustcompany.com">info@vietrustcompany.com</a><br>
+    © 2026 Vietrust. All rights reserved.
   </div>
 </div>
 
@@ -175,9 +513,28 @@ function formatPhone(input) {
   input.value = v;
 }
 
+function updateSteps() {
+  const name  = document.getElementById('inp-name').value.trim();
+  const phone = document.getElementById('inp-phone').value.trim();
+  const dob   = document.getElementById('inp-dob').value;
+  const step2 = document.getElementById('si2');
+  const step3 = document.getElementById('si3');
+  const line1 = document.getElementById('sl1');
+  const line2 = document.getElementById('sl2');
+  if (name && phone && dob) {
+    step2.style.opacity = '1'; step2.classList.add('active');
+    line1.classList.add('done');
+  }
+  if (docType && files.length > 0) {
+    step3.style.opacity = '1'; step3.classList.add('active');
+    line2.classList.add('done');
+  }
+}
+
 function selDoc(el, type) {
   document.querySelectorAll('.doc-btn').forEach(b => b.classList.remove('sel'));
-  el.classList.add('sel'); docType = type; checkReady();
+  el.classList.add('sel'); docType = type;
+  updateSteps(); checkReady();
 }
 
 const dropZone = document.getElementById('drop-zone');
@@ -189,13 +546,13 @@ fileInput.addEventListener('change', e => { addFiles([...e.target.files]); fileI
 
 function addFiles(newFiles) {
   newFiles.forEach(f => files.push({ file: f, id: Math.random().toString(36).slice(2) }));
-  renderFiles(); checkReady();
+  renderFiles(); updateSteps(); checkReady();
 }
 
 function removeFile(id) {
   const idx = files.findIndex(f => f.id === id);
   if (idx > -1) files.splice(idx, 1);
-  renderFiles(); checkReady();
+  renderFiles(); updateSteps(); checkReady();
 }
 
 function renderFiles() {
@@ -232,32 +589,24 @@ function checkReady() {
 }
 
 function fileToBase64(file) {
-  return new Promise(res => {
-    const r = new FileReader();
-    r.onload = e => res(e.target.result.split(',')[1]);
-    r.readAsDataURL(file);
-  });
+  return new Promise(res => { const r = new FileReader(); r.onload = e => res(e.target.result.split(',')[1]); r.readAsDataURL(file); });
 }
 
 async function sendViaForm(payload) {
-  // Use no-cors fetch — Apps Script accepts this
-  // We can't read the response but the email still sends
-  const resp = await fetch(SCRIPT_URL, {
-    method: 'POST',
-    mode: 'no-cors',
+  await fetch(SCRIPT_URL, {
+    method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify(payload)
   });
-  // no-cors returns opaque response — we assume success
   return { success: true };
 }
 
 async function submitForm() {
-  const name  = document.getElementById('inp-name').value.trim();
-  const phone = document.getElementById('inp-phone').value.trim();
-  const dob   = document.getElementById('inp-dob').value;
+  const name    = document.getElementById('inp-name').value.trim();
+  const phone   = document.getElementById('inp-phone').value.trim();
+  const dob     = document.getElementById('inp-dob').value;
   const email   = document.getElementById('inp-email').value.trim() || 'Not provided';
-  const message  = document.getElementById('inp-message') ? (document.getElementById('inp-message').value.trim() || 'None') : 'None';
+  const message = document.getElementById('inp-message') ? (document.getElementById('inp-message').value.trim() || 'None') : 'None';
   const dobDisplay = new Date(dob + 'T00:00:00').toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
 
   document.getElementById('send-btn').disabled = true;
@@ -270,25 +619,12 @@ async function submitForm() {
     for (let i = 0; i < files.length; i++) {
       setProgress(10 + Math.round((i / files.length) * 60), `Processing file ${i+1} of ${files.length}...`);
       const b64 = await fileToBase64(files[i].file);
-      fileData.push({
-        filename: files[i].file.name,
-        mimeType: files[i].file.type || 'application/octet-stream',
-        data: b64
-      });
+      fileData.push({ filename: files[i].file.name, mimeType: files[i].file.type || 'application/octet-stream', data: b64 });
     }
-
     setProgress(75, 'Sending to Vietrust...');
+    await sendViaForm({ name, phone, dob: dobDisplay, email, message, docType, files: fileData });
+    setProgress(100, 'Sent successfully!');
 
-    const payload = {
-      name, phone, dob: dobDisplay, email, message, docType,
-      files: fileData
-    };
-
-    // Google Apps Script requires no-cors mode
-    // We use a form-based approach via hidden iframe to avoid CORS issues
-    await sendViaForm(payload);
-
-    setProgress(100, 'Sent!');
     setTimeout(() => {
       document.getElementById('main-form').style.display = 'none';
       document.getElementById('success-screen').style.display = 'block';
@@ -302,7 +638,6 @@ async function submitForm() {
     }, 800);
 
   } catch(err) {
-    console.error(err);
     document.getElementById('err-box').textContent = 'Failed to send. Please check your connection and try again. (' + (err.message || 'Unknown error') + ')';
     document.getElementById('err-box').style.display = 'block';
     document.getElementById('send-btn').disabled = false;
@@ -317,7 +652,7 @@ function setProgress(pct, label) {
 
 function resetForm() {
   files.length = 0; docType = '';
-  ['inp-name','inp-phone','inp-dob','inp-email','inp-message'].forEach(id => document.getElementById(id).value = '');
+  ['inp-name','inp-phone','inp-dob','inp-email','inp-message'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
   document.querySelectorAll('.doc-btn').forEach(b => b.classList.remove('sel'));
   document.getElementById('file-list').innerHTML = '';
   document.getElementById('preview-grid').innerHTML = '';
@@ -326,6 +661,8 @@ function resetForm() {
   document.getElementById('send-btn').disabled = true;
   document.getElementById('main-form').style.display = 'block';
   document.getElementById('success-screen').style.display = 'none';
+  ['si2','si3'].forEach(id => { const el = document.getElementById(id); el.style.opacity='0.5'; el.classList.remove('active'); });
+  ['sl1','sl2'].forEach(id => document.getElementById(id).classList.remove('done'));
 }
 </script>
 </body>
