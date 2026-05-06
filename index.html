@@ -12,57 +12,46 @@
     --text: #e6edf3; --muted: #8b949e; --radius: 12px;
   }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 60px; }
-
   .header { background: linear-gradient(135deg, #0d2818, #1a3a2a); border-bottom: 1px solid var(--green-dk); padding: 20px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 20px rgba(46,160,67,0.2); }
   .logo { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
   .logo span { color: var(--green); }
   .tagline { font-size: 12px; color: var(--muted); margin-top: 3px; }
-
   .container { max-width: 480px; margin: 0 auto; padding: 24px 16px; }
-
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
   .card-title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 14px; }
-
   .field { margin-bottom: 14px; }
   .field:last-child { margin-bottom: 0; }
   .field label { display: block; font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 6px; }
   .field input { width: 100%; padding: 13px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 15px; outline: none; transition: border 0.2s; -webkit-appearance: none; }
   .field input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(46,160,67,0.12); }
   .field input::placeholder { color: #444; }
-
   .doc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .doc-btn { padding: 14px 8px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px; color: var(--muted); font-size: 12px; font-weight: 500; text-align: center; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 6px; }
   .doc-btn .icon { font-size: 24px; }
   .doc-btn.sel { border-color: var(--green); color: var(--green); background: var(--green-lt); }
-
   .upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 32px 20px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--bg); position: relative; overflow: hidden; }
   .upload-zone.over { border-color: var(--green); background: var(--green-lt); }
   .upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; font-size: 0; }
   .upload-icon { font-size: 40px; margin-bottom: 10px; }
   .upload-zone h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
   .upload-zone p { font-size: 12px; color: var(--muted); }
-
   .file-list { margin-top: 12px; }
   .file-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; }
-  .file-thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); flex-shrink: 0; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .file-thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); flex-shrink: 0; }
+  .file-thumb-pdf { width: 48px; height: 48px; border-radius: 6px; border: 1px solid var(--border); flex-shrink: 0; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 22px; }
   .file-info { flex: 1; min-width: 0; }
   .file-name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .file-size { font-size: 11px; color: var(--muted); margin-top: 2px; }
   .file-rm { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; padding: 0 4px; flex-shrink: 0; }
-  .file-rm:hover { color: #f85149; }
-
   .preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
   .preview-img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); }
-
   .send-btn { width: 100%; padding: 16px; border: none; border-radius: 10px; background: var(--green); color: white; font-size: 17px; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: 8px; }
   .send-btn:hover { background: var(--green-dk); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(46,160,67,0.4); }
   .send-btn:disabled { background: var(--border); color: var(--muted); transform: none; box-shadow: none; cursor: not-allowed; }
-
   .progress-wrap { margin: 12px 0; display: none; }
   .progress-label { font-size: 13px; color: var(--muted); margin-bottom: 8px; text-align: center; }
   .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
   .progress-fill { height: 100%; background: linear-gradient(90deg, var(--green-dk), var(--green)); border-radius: 3px; transition: width 0.4s ease; width: 0%; }
-
   .success-screen { display: none; text-align: center; padding: 48px 20px; }
   .success-icon { font-size: 72px; margin-bottom: 16px; }
   .success-title { font-size: 26px; font-weight: 800; color: var(--green); margin-bottom: 8px; }
@@ -73,8 +62,6 @@
   .success-row span:first-child { color: var(--muted); }
   .success-row span:last-child { font-weight: 600; }
   .new-btn { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font-size: 15px; font-weight: 600; cursor: pointer; }
-  .new-btn:hover { background: var(--border); }
-
   .err-box { background: #2d1117; border: 1px solid #f85149; border-radius: 10px; padding: 14px 16px; font-size: 13px; color: #f85149; margin-top: 12px; display: none; line-height: 1.6; }
 </style>
 </head>
@@ -86,10 +73,8 @@
 </div>
 
 <div class="container">
-
   <div id="main-form">
 
-    <!-- Step 1 -->
     <div class="card">
       <div class="card-title">📋 Step 1 — Your Information</div>
       <div class="field">
@@ -106,7 +91,6 @@
       </div>
     </div>
 
-    <!-- Step 2 -->
     <div class="card">
       <div class="card-title">📁 Step 2 — Document Type</div>
       <div class="doc-grid">
@@ -119,33 +103,28 @@
       </div>
     </div>
 
-    <!-- Step 3 -->
     <div class="card">
       <div class="card-title">📎 Step 3 — Upload Your Documents</div>
       <div class="upload-zone" id="drop-zone">
         <input type="file" id="file-input" multiple accept="image/*,.pdf">
         <div class="upload-icon">📷</div>
         <h3>Tap to choose photos or files</h3>
-        <p>Camera roll, take a photo, or PDF — all supported</p>
+        <p>Camera roll, take a photo, or PDF</p>
       </div>
       <div class="file-list" id="file-list"></div>
       <div class="preview-grid" id="preview-grid"></div>
     </div>
 
     <div class="err-box" id="err-box"></div>
-
     <div class="progress-wrap" id="prog-wrap">
       <div class="progress-label" id="prog-label">Sending...</div>
       <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
     </div>
-
     <button class="send-btn" id="send-btn" disabled onclick="submitForm()">
       📤 Send Documents to Vietrust
     </button>
-
   </div>
 
-  <!-- Success -->
   <div class="success-screen" id="success-screen">
     <div class="success-icon">✅</div>
     <div class="success-title">Documents Sent!</div>
@@ -153,7 +132,6 @@
     <div class="success-card" id="success-summary"></div>
     <button class="new-btn" onclick="resetForm()">Submit Another Document</button>
   </div>
-
 </div>
 
 <script>
@@ -163,14 +141,11 @@ let docType = '';
 
 function selDoc(el, type) {
   document.querySelectorAll('.doc-btn').forEach(b => b.classList.remove('sel'));
-  el.classList.add('sel');
-  docType = type;
-  checkReady();
+  el.classList.add('sel'); docType = type; checkReady();
 }
 
 const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
-
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
 dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('over'); addFiles([...e.dataTransfer.files]); });
@@ -181,64 +156,68 @@ function addFiles(newFiles) {
     if (!f.type.startsWith('image/') && f.type !== 'application/pdf') return;
     files.push({ file: f, id: Math.random().toString(36).slice(2) });
   });
-  renderFiles();
-  checkReady();
+  renderFiles(); checkReady();
 }
 
 function removeFile(id) {
   const idx = files.findIndex(f => f.id === id);
   if (idx > -1) files.splice(idx, 1);
-  renderFiles();
-  checkReady();
+  renderFiles(); checkReady();
 }
 
 function renderFiles() {
   const list = document.getElementById('file-list');
   const grid = document.getElementById('preview-grid');
   if (!files.length) { list.innerHTML = ''; grid.innerHTML = ''; return; }
-
   list.innerHTML = files.map(item => `
     <div class="file-item">
-      ${item.file.type.startsWith('image/') 
+      ${item.file.type.startsWith('image/')
         ? `<img class="file-thumb" id="th-${item.id}" src="">`
-        : `<div class="file-thumb">📄</div>`}
+        : `<div class="file-thumb-pdf">📄</div>`}
       <div class="file-info">
         <div class="file-name">${item.file.name}</div>
         <div class="file-size">${(item.file.size/1024).toFixed(0)} KB · ${item.file.type.includes('pdf') ? 'PDF' : 'Image'}</div>
       </div>
       <button class="file-rm" onclick="removeFile('${item.id}')">×</button>
-    </div>
-  `).join('');
-
+    </div>`).join('');
   grid.innerHTML = '';
   files.forEach(item => {
     if (!item.file.type.startsWith('image/')) return;
     const prev = document.createElement('img');
-    prev.className = 'preview-img';
-    grid.appendChild(prev);
+    prev.className = 'preview-img'; grid.appendChild(prev);
     const r = new FileReader();
-    r.onload = e => {
-      prev.src = e.target.result;
-      const th = document.getElementById('th-' + item.id);
-      if (th) th.src = e.target.result;
-    };
+    r.onload = e => { prev.src = e.target.result; const th = document.getElementById('th-' + item.id); if (th) th.src = e.target.result; };
     r.readAsDataURL(item.file);
   });
 }
 
 function checkReady() {
-  const name  = document.getElementById('inp-name').value.trim();
+  const name = document.getElementById('inp-name').value.trim();
   const phone = document.getElementById('inp-phone').value.trim();
-  const dob   = document.getElementById('inp-dob').value;
+  const dob = document.getElementById('inp-dob').value;
   document.getElementById('send-btn').disabled = !(name && phone && dob && docType && files.length > 0);
 }
 
-// Convert file to base64
-function toBase64(file) {
+function toDataUrl(file) {
+  return new Promise(res => { const r = new FileReader(); r.onload = e => res(e.target.result); r.readAsDataURL(file); });
+}
+
+// Resize image to max 1200px to keep email size manageable
+function resizeImage(dataUrl, maxSize = 1200) {
   return new Promise(res => {
-    const r = new FileReader();
-    r.onload = e => res(e.target.result.split(',')[1]);
-    r.readAsDataURL(file);
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (Math.max(w, h) > maxSize) {
+        const scale = maxSize / Math.max(w, h);
+        w = Math.round(w * scale); h = Math.round(h * scale);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      res(canvas.toDataURL('image/jpeg', 0.85));
+    };
+    img.src = dataUrl;
   });
 }
 
@@ -254,41 +233,104 @@ async function submitForm() {
   setProgress(10, 'Preparing documents...');
 
   try {
-    // Convert all files to base64
-    setProgress(30, 'Processing files...');
-    const attachments = [];
-    for (const item of files) {
-      const b64 = await toBase64(item.file);
-      attachments.push({
-        name: item.file.name,
-        type: item.file.type || 'application/octet-stream',
-        data: b64
-      });
+    // Build HTML email body with images embedded inline
+    setProgress(30, 'Processing images...');
+
+    let imagesHtml = '';
+    let pdfList = '';
+
+    for (let i = 0; i < files.length; i++) {
+      const item = files[i];
+      setProgress(30 + Math.round((i / files.length) * 40), `Processing file ${i+1} of ${files.length}...`);
+
+      if (item.file.type.startsWith('image/')) {
+        const dataUrl = await toDataUrl(item.file);
+        const resized = await resizeImage(dataUrl, 1200);
+        imagesHtml += `
+          <div style="margin-bottom:20px;">
+            <p style="font-family:Arial,sans-serif;font-size:13px;color:#666;margin-bottom:8px;">
+              📷 <strong>${item.file.name}</strong> (${(item.file.size/1024).toFixed(0)} KB)
+            </p>
+            <img src="${resized}" style="max-width:100%;border-radius:8px;border:1px solid #ddd;" alt="${item.file.name}">
+          </div>`;
+      } else {
+        pdfList += `<li style="font-family:Arial,sans-serif;font-size:13px;color:#555;">${item.file.name} (${(item.file.size/1024).toFixed(0)} KB)</li>`;
+      }
     }
 
-    setProgress(60, 'Sending to Vietrust...');
+    const htmlBody = `
+<!DOCTYPE html>
+<html>
+<body style="background:#f5f5f5;padding:20px;margin:0;">
+  <div style="max-width:600px;margin:0 auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+
+    <div style="background:linear-gradient(135deg,#0d2818,#1a3a2a);padding:24px;text-align:center;">
+      <h1 style="color:#2ea043;font-family:Arial,sans-serif;font-size:24px;margin:0;">Vietrust Document Portal</h1>
+      <p style="color:#8b949e;font-family:Arial,sans-serif;font-size:13px;margin:6px 0 0;">New Document Submission</p>
+    </div>
+
+    <div style="padding:24px;">
+      <h2 style="font-family:Arial,sans-serif;font-size:16px;color:#333;border-bottom:2px solid #2ea043;padding-bottom:8px;margin-bottom:16px;">
+        👤 Client Information
+      </h2>
+      <table style="width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:14px;">
+        <tr style="background:#f9f9f9;">
+          <td style="padding:10px 12px;color:#666;font-weight:bold;width:40%;border-bottom:1px solid #eee;">Name</td>
+          <td style="padding:10px 12px;color:#333;border-bottom:1px solid #eee;">${name}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 12px;color:#666;font-weight:bold;border-bottom:1px solid #eee;">Phone</td>
+          <td style="padding:10px 12px;color:#333;border-bottom:1px solid #eee;">${phone}</td>
+        </tr>
+        <tr style="background:#f9f9f9;">
+          <td style="padding:10px 12px;color:#666;font-weight:bold;border-bottom:1px solid #eee;">Date of Birth</td>
+          <td style="padding:10px 12px;color:#333;border-bottom:1px solid #eee;">${dobDisplay}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 12px;color:#666;font-weight:bold;border-bottom:1px solid #eee;">Document Type</td>
+          <td style="padding:10px 12px;color:#333;border-bottom:1px solid #eee;">${docType}</td>
+        </tr>
+        <tr style="background:#f9f9f9;">
+          <td style="padding:10px 12px;color:#666;font-weight:bold;">Submitted</td>
+          <td style="padding:10px 12px;color:#333;">${new Date().toLocaleString()}</td>
+        </tr>
+      </table>
+
+      ${imagesHtml ? `
+      <h2 style="font-family:Arial,sans-serif;font-size:16px;color:#333;border-bottom:2px solid #2ea043;padding-bottom:8px;margin:24px 0 16px;">
+        📷 Submitted Documents (${files.filter(f=>f.file.type.startsWith('image/')).length} image${files.filter(f=>f.file.type.startsWith('image/')).length>1?'s':''})
+      </h2>
+      ${imagesHtml}` : ''}
+
+      ${pdfList ? `
+      <h2 style="font-family:Arial,sans-serif;font-size:16px;color:#333;border-bottom:2px solid #2ea043;padding-bottom:8px;margin:24px 0 16px;">
+        📄 PDF Files
+      </h2>
+      <ul style="padding-left:20px;">${pdfList}</ul>
+      <p style="font-family:Arial,sans-serif;font-size:12px;color:#999;margin-top:8px;">
+        Note: PDF files cannot be embedded in email. Please contact the client to resend as images if needed.
+      </p>` : ''}
+    </div>
+
+    <div style="background:#f9f9f9;padding:16px;text-align:center;border-top:1px solid #eee;">
+      <p style="font-family:Arial,sans-serif;font-size:12px;color:#999;margin:0;">
+        Sent via Vietrust Document Portal · ${new Date().toLocaleDateString()}
+      </p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+    setProgress(75, 'Sending to Vietrust...');
 
     const payload = {
       access_key: WEB3FORMS_KEY,
-      subject: `New Document from ${name} — ${docType}`,
+      subject: `📄 New Document from ${name} — ${docType}`,
       from_name: 'Vietrust Document Portal',
       name: name,
       email: 'noreply@vietrust.com',
-      message: `
-NEW DOCUMENT SUBMISSION — VIETRUST PORTAL
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CLIENT INFORMATION
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Name:           ${name}
-Phone:          ${phone}
-Date of Birth:  ${dobDisplay}
-Document Type:  ${docType}
-Files:          ${files.length} file(s)
-Submitted:      ${new Date().toLocaleString()}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      `.trim(),
-      attachments: attachments
+      message: `New document submission from ${name} (${phone}, DOB: ${dobDisplay}). Document Type: ${docType}. Files: ${files.length}. Submitted: ${new Date().toLocaleString()}`,
+      html: htmlBody
     };
 
     const resp = await fetch('https://api.web3forms.com/submit', {
@@ -310,7 +352,7 @@ Submitted:      ${new Date().toLocaleString()}
         <div class="success-row"><span>Phone</span><span>${phone}</span></div>
         <div class="success-row"><span>Date of Birth</span><span>${dobDisplay}</span></div>
         <div class="success-row"><span>Document Type</span><span>${docType}</span></div>
-        <div class="success-row"><span>Files Sent</span><span>${files.length} file${files.length > 1 ? 's' : ''}</span></div>
+        <div class="success-row"><span>Files Sent</span><span>${files.length} file${files.length>1?'s':''}</span></div>
       `;
     }, 800);
 
@@ -328,11 +370,8 @@ function setProgress(pct, label) {
 }
 
 function resetForm() {
-  files.length = 0;
-  docType = '';
-  document.getElementById('inp-name').value = '';
-  document.getElementById('inp-phone').value = '';
-  document.getElementById('inp-dob').value = '';
+  files.length = 0; docType = '';
+  ['inp-name','inp-phone','inp-dob'].forEach(id => document.getElementById(id).value = '');
   document.querySelectorAll('.doc-btn').forEach(b => b.classList.remove('sel'));
   document.getElementById('file-list').innerHTML = '';
   document.getElementById('preview-grid').innerHTML = '';
