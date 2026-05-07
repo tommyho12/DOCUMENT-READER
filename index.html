@@ -315,8 +315,209 @@ body {
 }
 
 /* ── DIVIDER ── */
+
+.lang-toggle {
+  display: flex; gap: 3px; align-items: center;
+  background: rgba(255,255,255,0.1); border-radius: 20px; padding: 3px;
+}
+.lang-btn {
+  font-size: 12px; font-weight: 700; padding: 4px 10px;
+  border-radius: 16px; border: none; cursor: pointer;
+  color: rgba(255,255,255,0.6); background: transparent;
+  transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.03em;
+}
+.lang-btn.lang-active { background: var(--gold); color: var(--navy); }
+.lang-btn:hover:not(.lang-active) { color: white; }
+
 .gold-divider { height: 3px; background: linear-gradient(90deg, var(--gold-dk), var(--gold), var(--gold-lt), var(--gold)); border-radius: 2px; margin-bottom: 24px; }
 </style>
+
+<script>
+const TRANSLATIONS = {
+  en: {
+    tagline: 'INSURANCE & FINANCIAL',
+    hero_badge: '🔒 Secure Document Portal',
+    hero_title: 'Upload Your<br><span>Documents</span> Safely',
+    hero_sub: 'Send your insurance, tax, or financial documents<br>directly to the Vietrust team — fast and secure.',
+    trust_1: '🔐 Secure Upload',
+    trust_2: '📧 Delivered Instantly',
+    trust_3: '✅ No Account Needed',
+    step1_title: 'Your Information',
+    step1_step: 'Step 1 of 3',
+    step1_lbl: 'Your Info',
+    step2_lbl: 'Doc Type',
+    step3_lbl: 'Upload',
+    lbl_name: 'Full Name',
+    lbl_phone: 'Phone Number',
+    lbl_dob: 'Date of Birth',
+    lbl_email: 'Email Address',
+    lbl_message: 'Message to Vietrust',
+    optional: '(optional)',
+    ph_name: 'First Last',
+    ph_phone: '(555)-555-5555',
+    ph_email: 'you@email.com',
+    ph_message: 'Explain any concerns, questions, or reason for sending these documents...',
+    step2_title: 'Document Type',
+    step2_step: 'Step 2 of 3',
+    step3_title: 'Upload Documents',
+    step3_step: 'Step 3 of 3 — Unlimited files accepted',
+    upload_h3: 'Tap to choose photos or files',
+    upload_p: 'Camera roll · Take a photo · PDF · No size limit',
+    send_btn: 'Send Documents to Vietrust',
+    success_title: 'Documents <span>Received!</span>',
+    success_sub: 'Your documents have been securely sent to the Vietrust team.<br>We will review them and contact you shortly.',
+    new_btn: 'Submit Another Document',
+    footer_hours: 'Mon–Fri 9am–5pm · Sat–Sun By Appointment',
+    required: '*',
+    processing: 'Preparing your documents...',
+    sending: 'Sending to Vietrust...',
+    sent: 'Sent successfully!',
+    err_msg: 'Failed to send. Please check your connection and try again.',
+    doc_insurance: 'Insurance Card',
+    doc_id: 'ID / License',
+    doc_tax: 'Tax Form',
+    doc_medical: 'Medical Record',
+    doc_pay: 'Pay Stub',
+    doc_other: 'Other',
+    sr_name: 'Name', sr_phone: 'Phone', sr_dob: 'Date of Birth',
+    sr_type: 'Document Type', sr_files: 'Files Sent',
+    bottom_hours: 'Mon–Fri 9am–5pm · Sat–Sun By Appointment'
+  },
+  vi: {
+    tagline: 'BẢO HIỂM & TÀI CHÍNH',
+    hero_badge: '🔒 Cổng Tải Tài Liệu An Toàn',
+    hero_title: 'Tải Lên <span>Tài Liệu</span> Của Bạn An Toàn',
+    hero_sub: 'Gửi tài liệu bảo hiểm, thuế, hoặc tài chính của bạn<br>trực tiếp đến đội ngũ Vietrust — nhanh chóng và an toàn.',
+    trust_1: '🔐 Tải Lên An Toàn',
+    trust_2: '📧 Giao Ngay Lập Tức',
+    trust_3: '✅ Không Cần Tài Khoản',
+    step1_title: 'Thông Tin Của Bạn',
+    step1_step: 'Bước 1 / 3',
+    step1_lbl: 'Thông Tin',
+    step2_lbl: 'Loại Giấy Tờ',
+    step3_lbl: 'Tải Lên',
+    lbl_name: 'Họ và Tên',
+    lbl_phone: 'Số Điện Thoại',
+    lbl_dob: 'Ngày Sinh',
+    lbl_email: 'Địa Chỉ Email',
+    lbl_message: 'Tin Nhắn Đến Vietrust',
+    optional: '(không bắt buộc)',
+    ph_name: 'Họ Tên',
+    ph_phone: '(555)-555-5555',
+    ph_email: 'email@example.com',
+    ph_message: 'Giải thích lý do gửi tài liệu hoặc câu hỏi của bạn...',
+    step2_title: 'Loại Tài Liệu',
+    step2_step: 'Bước 2 / 3',
+    step3_title: 'Tải Lên Tài Liệu',
+    step3_step: 'Bước 3 / 3 — Không giới hạn số lượng tệp',
+    upload_h3: 'Nhấn để chọn ảnh hoặc tệp',
+    upload_p: 'Thư viện ảnh · Chụp ảnh · PDF · Không giới hạn dung lượng',
+    send_btn: 'Gửi Tài Liệu Đến Vietrust',
+    success_title: 'Tài Liệu Đã <span>Được Nhận!</span>',
+    success_sub: 'Tài liệu của bạn đã được gửi an toàn đến đội ngũ Vietrust.<br>Chúng tôi sẽ xem xét và liên hệ với bạn sớm.',
+    new_btn: 'Gửi Tài Liệu Khác',
+    footer_hours: 'Thứ 2–6: 9am–5pm · Thứ 7–CN: Theo Hẹn',
+    required: '*',
+    processing: 'Đang chuẩn bị tài liệu của bạn...',
+    sending: 'Đang gửi đến Vietrust...',
+    sent: 'Đã gửi thành công!',
+    err_msg: 'Gửi thất bại. Vui lòng kiểm tra kết nối và thử lại.',
+    doc_insurance: 'Thẻ Bảo Hiểm',
+    doc_id: 'CMND / Bằng Lái',
+    doc_tax: 'Mẫu Thuế',
+    doc_medical: 'Hồ Sơ Y Tế',
+    doc_pay: 'Phiếu Lương',
+    doc_other: 'Khác',
+    sr_name: 'Họ Tên', sr_phone: 'Điện Thoại', sr_dob: 'Ngày Sinh',
+    sr_type: 'Loại Tài Liệu', sr_files: 'Tệp Đã Gửi',
+    bottom_hours: 'Thứ 2–6: 9am–5pm · Thứ 7–CN: Theo Hẹn'
+  }
+};
+
+let currentLang = 'en';
+
+function detectLang() {
+  const browserLang = navigator.language || navigator.userLanguage || 'en';
+  return browserLang.toLowerCase().startsWith('vi') ? 'vi' : 'en';
+}
+
+function applyLang(lang) {
+  currentLang = lang;
+  const t = TRANSLATIONS[lang];
+
+  // Toggle button
+  document.getElementById('lang-en').classList.toggle('lang-active', lang === 'en');
+  document.getElementById('lang-vi').classList.toggle('lang-active', lang === 'vi');
+
+  // Header
+  document.querySelector('.logo-sub').textContent = t.tagline;
+
+  // Hero
+  document.querySelector('.hero-badge').textContent = t.hero_badge;
+  document.querySelector('.hero h1').innerHTML = t.hero_title;
+  document.querySelector('.hero p').innerHTML = t.hero_sub;
+
+  // Trust badges
+  const badges = document.querySelectorAll('.trust-badge');
+  if (badges[0]) badges[0].textContent = t.trust_1;
+  if (badges[1]) badges[1].textContent = t.trust_2;
+  if (badges[2]) badges[2].textContent = t.trust_3;
+
+  // Steps
+  document.querySelectorAll('.step-lbl')[0].textContent = t.step1_lbl;
+  document.querySelectorAll('.step-lbl')[1].textContent = t.step2_lbl;
+  document.querySelectorAll('.step-lbl')[2].textContent = t.step3_lbl;
+
+  // Step 1 card
+  document.getElementById('s1-title').textContent = t.step1_title;
+  document.getElementById('s1-step').textContent = t.step1_step;
+  document.getElementById('lbl-name').childNodes[0].textContent = t.lbl_name + ' ';
+  document.getElementById('lbl-phone').childNodes[0].textContent = t.lbl_phone + ' ';
+  document.getElementById('lbl-dob').textContent = t.lbl_dob + ' *';
+  document.getElementById('lbl-email').childNodes[0].textContent = t.lbl_email + ' ';
+  document.getElementById('lbl-message').childNodes[0].textContent = t.lbl_message + ' ';
+  document.querySelectorAll('.optional').forEach(el => el.textContent = t.optional);
+  document.getElementById('inp-name').placeholder = t.ph_name;
+  document.getElementById('inp-phone').placeholder = t.ph_phone;
+  document.getElementById('inp-email').placeholder = t.ph_email;
+  document.getElementById('inp-message').placeholder = t.ph_message;
+
+  // Step 2
+  document.getElementById('s2-title').textContent = t.step2_title;
+  document.getElementById('s2-step').textContent = t.step2_step;
+  const docBtns = document.querySelectorAll('.doc-btn span:last-child');
+  const docKeys = ['doc_insurance','doc_id','doc_tax','doc_medical','doc_pay','doc_other'];
+  docBtns.forEach((el, i) => { if (docKeys[i]) el.textContent = t[docKeys[i]]; });
+
+  // Step 3
+  document.getElementById('s3-title').textContent = t.step3_title;
+  document.getElementById('s3-step').textContent = t.step3_step;
+  document.querySelector('.upload-zone h3').textContent = t.upload_h3;
+  document.querySelector('.upload-zone p').textContent = t.upload_p;
+
+  // Send button
+  document.getElementById('send-btn').innerHTML = '<span class="btn-icon">📤</span> ' + t.send_btn;
+
+  // Footer hours
+  const footerHours = document.getElementById('footer-hours');
+  if (footerHours) footerHours.textContent = t.bottom_hours;
+
+  // Store for use in JS
+  window._t = t;
+}
+
+function toggleLang(lang) {
+  applyLang(lang);
+  localStorage.setItem('vietrust_lang', lang);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('vietrust_lang');
+  const detected = detectLang();
+  applyLang(saved || detected);
+});
+</script>
 </head>
 <body>
 
@@ -330,9 +531,13 @@ body {
         <div class="logo-sub">INSURANCE & FINANCIAL</div>
       </div>
     </div>
-    <a class="header-phone" href="tel:4079012586">
-      📞 (407) 901-2586
-    </a>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a class="header-phone" href="tel:4079012586">📞 (407) 901-2586</a>
+      <div class="lang-toggle">
+        <button class="lang-btn" id="lang-en" onclick="toggleLang('en')">EN</button>
+        <button class="lang-btn" id="lang-vi" onclick="toggleLang('vi')">VI</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -392,28 +597,28 @@ body {
       <div class="card-title">
         <div class="card-title-icon">👤</div>
         <div>
-          <div class="card-title-text">Your Information</div>
-          <div class="card-title-step">Step 1 of 3</div>
+          <div class="card-title-text" id="s1-title">Your Information</div>
+          <div class="card-title-step" id="s1-step">Step 1 of 3</div>
         </div>
       </div>
       <div class="field">
-        <label>Full Name *</label>
+        <label id="lbl-name">Full Name *</label>
         <input type="text" id="inp-name" placeholder="First Last" autocomplete="name" oninput="updateSteps(); checkReady()">
       </div>
       <div class="field">
-        <label>Phone Number *</label>
+        <label id="lbl-phone">Phone Number *</label>
         <input type="tel" id="inp-phone" placeholder="(555)-555-5555" autocomplete="tel" oninput="formatPhone(this); updateSteps(); checkReady()" maxlength="14">
       </div>
       <div class="field">
-        <label>Date of Birth *</label>
+        <label id="lbl-dob">Date of Birth *</label>
         <input type="date" id="inp-dob" onchange="updateSteps(); checkReady()">
       </div>
       <div class="field">
-        <label>Email Address <span class="optional">(optional)</span></label>
+        <label id="lbl-email">Email Address <span class="optional">(optional)</span></label>
         <input type="email" id="inp-email" placeholder="you@email.com" autocomplete="email">
       </div>
       <div class="field">
-        <label>Message to Vietrust <span class="optional">(optional)</span></label>
+        <label id="lbl-message">Message to Vietrust <span class="optional">(optional)</span></label>
         <textarea id="inp-message" placeholder="Explain any concerns, questions, or reason for sending these documents..."></textarea>
       </div>
     </div>
@@ -428,12 +633,12 @@ body {
         </div>
       </div>
       <div class="doc-grid">
-        <div class="doc-btn" onclick="selDoc(this,'Insurance Card')"><span class="icon">🏥</span>Insurance Card</div>
-        <div class="doc-btn" onclick="selDoc(this,'ID / License')"><span class="icon">🪪</span>ID / License</div>
-        <div class="doc-btn" onclick="selDoc(this,'Tax Form')"><span class="icon">📋</span>Tax Form</div>
-        <div class="doc-btn" onclick="selDoc(this,'Medical Record')"><span class="icon">🩺</span>Medical Record</div>
-        <div class="doc-btn" onclick="selDoc(this,'Pay Stub')"><span class="icon">💵</span>Pay Stub</div>
-        <div class="doc-btn" onclick="selDoc(this,'Other')"><span class="icon">📄</span>Other</div>
+        <div class="doc-btn" onclick="selDoc(this,'Insurance Card')"><span class="icon">🏥</span><span>Insurance Card</span></div>
+        <div class="doc-btn" onclick="selDoc(this,'ID / License')"><span class="icon">🪪</span><span>ID / License</span></div>
+        <div class="doc-btn" onclick="selDoc(this,'Tax Form')"><span class="icon">📋</span><span>Tax Form</span></div>
+        <div class="doc-btn" onclick="selDoc(this,'Medical Record')"><span class="icon">🩺</span><span>Medical Record</span></div>
+        <div class="doc-btn" onclick="selDoc(this,'Pay Stub')"><span class="icon">💵</span><span>Pay Stub</span></div>
+        <div class="doc-btn" onclick="selDoc(this,'Other')"><span class="icon">📄</span><span>Other</span></div>
       </div>
     </div>
 
@@ -442,8 +647,8 @@ body {
       <div class="card-title">
         <div class="card-title-icon">📎</div>
         <div>
-          <div class="card-title-text">Upload Documents</div>
-          <div class="card-title-step">Step 3 of 3 — Unlimited files accepted</div>
+          <div class="card-title-text" id="s3-title">Upload Documents</div>
+          <div class="card-title-step" id="s3-step">Step 3 of 3 — Unlimited files accepted</div>
         </div>
       </div>
       <div class="upload-zone" id="drop-zone">
@@ -472,7 +677,7 @@ body {
       1814 Woodward St, Orlando, FL 32803<br>
       <a href="tel:4079012586" style="color:var(--gold-dk);text-decoration:none;">(407) 901-2586</a> &nbsp;·&nbsp;
       <a href="mailto:info@vietrustcompany.com" style="color:var(--gold-dk);text-decoration:none;">info@vietrustcompany.com</a><br>
-      Mon–Fri 9am–5pm · Sat–Sun By Appointment
+      <span id="footer-hours">Mon–Fri 9am–5pm · Sat–Sun By Appointment</span>
     </div>
   </div>
 
@@ -612,7 +817,7 @@ async function submitForm() {
   document.getElementById('send-btn').disabled = true;
   document.getElementById('err-box').style.display = 'none';
   document.getElementById('prog-wrap').style.display = 'block';
-  setProgress(10, 'Preparing your documents...');
+  setProgress(10, (window._t && window._t.processing) || 'Preparing your documents...');
 
   try {
     const fileData = [];
@@ -621,9 +826,9 @@ async function submitForm() {
       const b64 = await fileToBase64(files[i].file);
       fileData.push({ filename: files[i].file.name, mimeType: files[i].file.type || 'application/octet-stream', data: b64 });
     }
-    setProgress(75, 'Sending to Vietrust...');
+    setProgress(75, (window._t && window._t.sending) || 'Sending to Vietrust...');
     await sendViaForm({ name, phone, dob: dobDisplay, email, message, docType, files: fileData });
-    setProgress(100, 'Sent successfully!');
+    setProgress(100, (window._t && window._t.sent) || 'Sent successfully!');
 
     setTimeout(() => {
       document.getElementById('main-form').style.display = 'none';
