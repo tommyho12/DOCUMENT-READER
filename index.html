@@ -20,7 +20,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--gray
 /* HEADER */
 .header{background:var(--black);padding:0 32px;position:sticky;top:0;z-index:100;border-bottom:3px solid var(--white);}
 .header-inner{width:100%;display:flex;align-items:center;justify-content:space-between;height:80px}
-.logo-wrap{display:flex;flex-direction:column;align-items:center}
+.logo-wrap{display:flex;flex-direction:column;align-items:flex-start}
 .logo-main{font-family:'Bebas Neue',sans-serif;font-size:34px;color:var(--white);letter-spacing:4px;line-height:1}
 .logo-sub{font-size:9px;color:var(--gray-400);letter-spacing:5px;text-transform:uppercase;margin-top:3px;border-top:1px solid #333;padding-top:3px;width:100%}
 .header-right{display:flex;align-items:center;gap:12px}
@@ -177,18 +177,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--gray
 <!-- HEADER -->
 <div class="header">
   <div class="header-inner">
-    <div style="flex:1"></div>
     <div class="logo-wrap">
       <div class="logo-main">VIETRUST</div>
       <div class="logo-sub">INSURANCE &amp; FINANCIAL</div>
     </div>
-    <div style="flex:1;display:flex;justify-content:flex-end;">
-      <div class="header-right">
-        <a class="header-phone" href="tel:4079012586">📞 (407) 901-2586</a>
-        <div class="lang-toggle">
-          <button class="lang-btn lang-active" id="lang-en" onclick="toggleLang('en')">EN</button>
-          <button class="lang-btn" id="lang-vi" onclick="toggleLang('vi')">VI</button>
-        </div>
+    <div class="header-right">
+      <a class="header-phone" href="tel:4079012586">📞 (407) 901-2586</a>
+      <div class="lang-toggle">
+        <button class="lang-btn lang-active" id="lang-en" onclick="toggleLang('en')">EN</button>
+        <button class="lang-btn" id="lang-vi" onclick="toggleLang('vi')">VI</button>
       </div>
     </div>
   </div>
