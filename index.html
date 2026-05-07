@@ -356,7 +356,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--gray-50);color:var(--gray
     1814 Woodward St, Orlando, FL 32803<br>
     <a href="tel:4079012586">(407) 901-2586</a> · <a href="mailto:info@vietrustcompany.com">info@vietrustcompany.com</a><br>
     <span id="footer-hours">Mon–Fri 9am–5pm · Sat–Sun By Appointment</span><br>
-    © 2026 Vietrust. All rights reserved.
+    © <span id="copy-year"></span> Vietrust. All rights reserved.
   </div>
 </div>
 
@@ -648,6 +648,7 @@ function resetForm(){
   ['si2','si3'].forEach(id=>{const el=document.getElementById(id);el.style.opacity='0.4';el.classList.remove('active');});
   ['sl1','sl2'].forEach(id=>document.getElementById(id).classList.remove('done'));
 }
+document.getElementById('copy-year').textContent = new Date().getFullYear();
 </script>
 </body>
 </html>
