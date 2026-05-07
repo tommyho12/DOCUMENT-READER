@@ -411,59 +411,110 @@ const T={
     suc_title:'ĐÃ NHẬN TÀI LIỆU',suc_sub:'Tài liệu của bạn đã được gửi an toàn đến đội ngũ Vietrust. Chúng tôi sẽ xem xét và liên hệ với bạn sớm.',
     new_btn:'Gửi Tài Liệu Khác',hours:'Thứ 2–6: 9am–5pm · Thứ 7–CN: Theo Hẹn',
     processing:'Đang chuẩn bị tài liệu...',sending:'Đang gửi đến Vietrust...',sent:'Đã gửi thành công!',
-    sr_name:'Họ Tên',sr_phone:'Điện Thoại',sr_dob:'Ngày Sinh',sr_type:'Loại Tài Liệu',sr_files:'Tệp Đã Gửi'
+    sr_name:'Họ Tên',sr_phone:'Điện Thoại',sr_dob:'Ngày Sinh',sr_type:'Loại Tài Liệu',sr_files:'Tệp Đã Gửi',
+    htb1:'Tải Lên An Toàn',htb2:'Giao Ngay Lập Tức',htb3:'Không Cần Tài Khoản',
+    agent2_title:'NHÂN VIÊN CỦA BẠN',agent2_p:'Có câu hỏi? Đội ngũ của chúng tôi sẵn sàng giúp đỡ về bảo hiểm và tài chính.'
   }
 };
 
 let lang='en';
-function applyLang(l){
-  lang=l;const t=T[l];
-  document.getElementById('lang-en').classList.toggle('lang-active',l==='en');
-  document.getElementById('lang-vi').classList.toggle('lang-active',l==='vi');
-  document.getElementById('hero-badge').textContent=t.hero_badge;
-  document.getElementById('hero-h1').innerHTML=t.hero_h1;
-  document.getElementById('hero-p').textContent=t.hero_p;
-  document.getElementById('hero-tagline').textContent=t.hero_tagline;
-  if(document.getElementById('htb1')) document.getElementById('htb1').childNodes[2].textContent=t.htb1;
-  if(document.getElementById('htb2')) document.getElementById('htb2').childNodes[2].textContent=t.htb2;
-  if(document.getElementById('htb3')) document.getElementById('htb3').childNodes[2].textContent=t.htb3;
-  
-  
-  document.getElementById('tb1').textContent=t.tb1;
-  document.getElementById('tb2').textContent=t.tb2;
-  document.getElementById('tb3').textContent=t.tb3;
-  document.getElementById('sl1-lbl').textContent=t.sl1;
-  document.getElementById('sl2-lbl').textContent=t.sl2;
-  document.getElementById('sl3-lbl').textContent=t.sl3;
-  document.getElementById('s1-title').textContent=t.s1_title;
-  document.getElementById('s1-step').textContent=t.s1_step;
-  document.getElementById('lbl-name').childNodes[0].textContent=t.lbl_name+' ';
-  document.getElementById('lbl-phone').childNodes[0].textContent=t.lbl_phone+' ';
-  document.getElementById('lbl-dob').textContent=t.lbl_dob;
-  document.getElementById('lbl-email').childNodes[0].textContent=t.lbl_email+' ';
-  document.getElementById('lbl-msg').childNodes[0].textContent=t.lbl_msg+' ';
-  document.getElementById('opt1').textContent=t.opt;
-  document.getElementById('opt2').textContent=t.opt;
-  document.getElementById('inp-name').placeholder=t.ph_name;
-  document.getElementById('inp-phone').placeholder=t.ph_phone;
-  document.getElementById('inp-email').placeholder=t.ph_email;
-  document.getElementById('inp-message').placeholder=t.ph_msg;
-  document.getElementById('s2-title').textContent=t.s2_title;
-  document.getElementById('s2-step').textContent=t.s2_step;
-  document.getElementById('s3-title').textContent=t.s3_title;
-  document.getElementById('s3-step').textContent=t.s3_step;
-  document.getElementById('upload-h3').textContent=t.upload_h3;
-  document.getElementById('upload-p').textContent=t.upload_p;
-  ['dt1','dt2','dt3','dt4','dt5','dt6'].forEach((id,i)=>document.getElementById(id).textContent=[t.dt1,t.dt2,t.dt3,t.dt4,t.dt5,t.dt6][i]);
-  document.getElementById('agent2-title').textContent=t.agent2_title;
-  document.getElementById('agent2-p').textContent=t.agent2_p;
-  document.getElementById('send-btn-txt').textContent=t.send;
-  document.getElementById('suc-title').textContent=t.suc_title;
-  document.getElementById('suc-sub').textContent=t.suc_sub;
-  document.getElementById('new-btn-txt').textContent=t.new_btn;
-  document.getElementById('footer-hours').textContent=t.hours;
-  document.getElementById('bottom-hours').textContent=t.hours;
-  window._t=t;
+function setText(id, txt) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = txt;
+}
+function setHTML(id, html) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = html;
+}
+function setPlaceholder(id, txt) {
+  const el = document.getElementById(id);
+  if (el) el.placeholder = txt;
+}
+function setChildText(id, txt) {
+  const el = document.getElementById(id);
+  if (el && el.childNodes[0]) el.childNodes[0].textContent = txt;
+}
+
+function applyLang(l) {
+  lang = l; const t = T[l];
+
+  // Toggle buttons
+  document.getElementById('lang-en').classList.toggle('lang-active', l === 'en');
+  document.getElementById('lang-vi').classList.toggle('lang-active', l === 'vi');
+
+  // Services strip
+  const svcTags = document.querySelectorAll('.svc-tag');
+  const svcLabels = l === 'vi'
+    ? ['OBAMACARE','MEDICARE','BẢO HIỂM NHÂN THỌ','IUL','THUẾ & LƯƠNG']
+    : ['OBAMACARE','MEDICARE','LIFE INSURANCE','IUL','TAX & PAYROLL'];
+  svcTags.forEach((el, i) => {
+    const svg = el.querySelector('svg');
+    if (svg && svcLabels[i]) el.innerHTML = svg.outerHTML + ' ' + svcLabels[i];
+  });
+
+  // Hero
+  setText('hero-badge', t.hero_badge);
+  setHTML('hero-h1', t.hero_h1);
+  setText('hero-tagline', t.hero_tagline);
+  setText('hero-p', t.hero_p);
+
+  // Hero trust badges
+  const htb1 = document.getElementById('htb1');
+  const htb2 = document.getElementById('htb2');
+  const htb3 = document.getElementById('htb3');
+  if (htb1) { const svg = htb1.querySelector('svg'); if(svg) htb1.innerHTML = svg.outerHTML + ' ' + t.htb1; }
+  if (htb2) { const svg = htb2.querySelector('svg'); if(svg) htb2.innerHTML = svg.outerHTML + ' ' + t.htb2; }
+  if (htb3) { const svg = htb3.querySelector('svg'); if(svg) htb3.innerHTML = svg.outerHTML + ' ' + t.htb3; }
+
+  // Step labels
+  setText('sl1-lbl', t.sl1);
+  setText('sl2-lbl', t.sl2);
+  setText('sl3-lbl', t.sl3);
+
+  // Step 1 card
+  setText('s1-title', t.s1_title);
+  setText('s1-step', t.s1_step);
+  setChildText('lbl-name', t.lbl_name + ' ');
+  setChildText('lbl-phone', t.lbl_phone + ' ');
+  setText('lbl-dob', t.lbl_dob);
+  setChildText('lbl-email', t.lbl_email + ' ');
+  setChildText('lbl-msg', t.lbl_msg + ' ');
+  setText('opt1', t.opt);
+  setText('opt2', t.opt);
+  setPlaceholder('inp-name', t.ph_name);
+  setPlaceholder('inp-phone', t.ph_phone);
+  setPlaceholder('inp-email', t.ph_email);
+  setPlaceholder('inp-message', t.ph_msg);
+
+  // Step 2 card
+  setText('s2-title', t.s2_title);
+  setText('s2-step', t.s2_step);
+  ['dt1','dt2','dt3','dt4','dt5','dt6'].forEach((id, i) =>
+    setText(id, [t.dt1,t.dt2,t.dt3,t.dt4,t.dt5,t.dt6][i])
+  );
+
+  // Step 3 card
+  setText('s3-title', t.s3_title);
+  setText('s3-step', t.s3_step);
+  setText('upload-h3', t.upload_h3);
+  setText('upload-p', t.upload_p);
+
+  // Send button
+  setText('send-btn-txt', t.send);
+
+  // Agent section
+  setText('agent2-title', t.agent2_title);
+  setText('agent2-p', t.agent2_p);
+
+  // Success screen
+  setText('suc-title', t.suc_title);
+  setText('suc-sub', t.suc_sub);
+  setText('new-btn-txt', t.new_btn);
+
+  // Footer
+  setText('footer-hours', t.hours);
+
+  window._t = t;
 }
 function toggleLang(l){applyLang(l);localStorage.setItem('vt_lang',l);}
 window.addEventListener('DOMContentLoaded',()=>{
