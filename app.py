@@ -81,6 +81,12 @@ input:focus, textarea:focus { border-color: #2ea043 !important; box-shadow: 0 0 
 
 if "records" not in st.session_state:
     st.session_state.records = []
+if "lang_select" not in st.session_state:
+    st.session_state.lang_select = "English"
+# Temporary L for before sidebar renders
+L = LANG["vi"] if st.session_state.get("lang_select") == "Tiếng Việt" else LANG["en"]
+if False:
+    st.session_state.records = []
 
 MIN_SHORT_SIDE = 600
 MIN_PIXELS = 500_000
@@ -361,8 +367,11 @@ with st.sidebar:
         st.warning("⚠️ Add API keys above")
 
     st.divider()
-    st.markdown("### 📊 Session Stats")
-    st.metric("Documents Processed", len(st.session_state.records))
+    lang = st.selectbox("🌐 Language / Ngôn Ngữ", ["English", "Tiếng Việt"], key="lang_select")
+    L = LANG['vi'] if lang == "Tiếng Việt" else LANG['en']
+    st.divider()
+    st.markdown(f"### {L['stats']}")
+    st.metric(L["docs_processed"], len(st.session_state.records))
     if st.session_state.records:
         types = {}
         for r in st.session_state.records:
@@ -378,13 +387,13 @@ st.markdown("""
 <div class="ds-header">
   <div>
     <div class="ds-logo">Docu<span>Scan</span> Pro<sub>by Vietrust</sub></div>
-    <div class="ds-tagline">Dual AI reading — Google Gemini + Claude working together on every document</div>
+    <div class="ds-tagline">{L['tagline']}</div>
   </div>
   <div class="ds-badge">⚡ v3.0 GEMINI + CLAUDE</div>
 </div>
 """, unsafe_allow_html=True)
 
-tab_scan, tab_records, tab_export, tab_help = st.tabs(["📷  Scan Document","📁  Records","📤  Export","❓  How to Send Documents"])
+tab_scan, tab_records, tab_export, tab_help = st.tabs([L["scan_tab"], L["records_tab"], L["export_tab"], L["help_tab"]])
 
 # ── TAB 1: SCAN ───────────────────────────────────────────
 with tab_scan:
@@ -403,14 +412,14 @@ with tab_scan:
 
     with col_left:
         st.markdown('<div class="section-title">Client Info</div>', unsafe_allow_html=True)
-        client_name = st.text_input("Client Name *", placeholder="e.g. Nguyen, John")
-        doc_type = st.selectbox("Document Type", [
+        client_name = st.text_input(L["client_name"], placeholder="e.g. Nguyen, John")
+        doc_type = st.selectbox(L["doc_type"], [
             "Auto-Detect","Insurance Card","Driver's License / ID",
             "Tax Form (W-2 / 1099 / 1040)","Medical Record","Pay Stub",
             "Bank Statement","Letter / Notice","Social Security Card",
             "Medicare / Medicaid Card","Other"
         ])
-        notes = st.text_area("Notes (optional)", placeholder="Any context...", height=80)
+        notes = st.text_area(L["notes"], placeholder="Any context...", height=80)
 
     with col_right:
         st.markdown('<div class="section-title">Upload Document</div>', unsafe_allow_html=True)
@@ -451,7 +460,7 @@ Thank you! — Vietrust""", language=None)
         run_ai = st.button("⚡ Read & Extract with Dual AI", type="primary",
                            disabled=not (img_ok and has_key), use_container_width=True)
     with c2:
-        enh_only = st.button("✨ Preview Enhancement", disabled=not uploaded, use_container_width=True)
+        enh_only = st.button(L["enhance_btn"], disabled=not uploaded, use_container_width=True)
 
     if enh_only and uploaded:
         img = Image.open(uploaded)
@@ -569,7 +578,7 @@ with tab_records:
     if not st.session_state.records:
         st.markdown('<div class="empty-state">📄<br><br>No documents scanned yet.</div>', unsafe_allow_html=True)
     else:
-        search = st.text_input("🔍 Search", placeholder="Client name or document type...")
+        search = st.text_input(L["search"], placeholder=L["search_ph"])
         filtered = [r for r in st.session_state.records if
                     not search or search.lower() in r["client"].lower() or search.lower() in r["doc_type"].lower()]
         st.caption(f"Showing {len(filtered)} of {len(st.session_state.records)} records")
